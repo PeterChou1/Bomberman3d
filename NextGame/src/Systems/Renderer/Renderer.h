@@ -15,19 +15,19 @@ public:
 
 	void Init(Display* d, Camera* c, Transform* t)
 	{
-		display = d;
-		cam = c;
-		cam_transform = t;
-	};
+		Display = d;
+		Cam = c;
+		CamTransform = t;
+	}
 
 	void Render() override;
 
 	~Renderer() override
 	{
-		delete[] display->zbuffer;
+		delete[] Display->Zbuffer;
 	}
 private:
-	Display* display;
-	Camera* cam;
-	Transform* cam_transform;
+	Display* Display{nullptr};
+	Camera* Cam{nullptr};
+	Transform* CamTransform{nullptr};
 };

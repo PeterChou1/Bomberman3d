@@ -10,24 +10,51 @@
 #include "Components/Camera.h"
 #include "Components/Display.h"
 #include "Components/Mesh.h"
-#include "Components/PhysicsObj.h"
+#include "Components/ParticleObj.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
 #include "Systems/Camera/CameraControl.h"
 #include "Systems/Physics/PhysicsWorld.h"
 #include "Systems/Renderer/Renderer.h"
 
-// GLOBALS
-int s_componentCounter = 0;
+int sComponentCounter = 0;
 // --- scene ---
 Scene scene;
 // Systems
-CameraControl cam_control = CameraControl(scene);
+CameraControl camControl = CameraControl(scene);
 Renderer renderer = Renderer(scene);
 PhysicsWorld phys = PhysicsWorld(scene);
 // TODO: Camera transform used for debug purposes (REMOVE LATER)
-Transform* c_transform;
+Transform* cTransform;
 
+void CreateMassSpring(Scene& scene)
+{
+	const EntityId particleA = scene.NewEntity();
+	const auto particleAMesh = scene.AddComponent<Mesh>(particleA);
+	const auto particleAPhys = scene.AddComponent<ParticleObj>(particleA);
+	const auto particleATransform = scene.AddComponent<Transform>(particleA);
+
+	InitTransform(*particleATransform, {0, 10, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
+	LoadFromObjectFile("./TestData/icosphere.obj", *particleAMesh);
+	particleAPhys->Mass = 1000;
+	particleAPhys->Gravity = false;
+	particleAPhys->SpringMass = true;
+	particleAPhys->RestLength = 4;
+	particleAPhys->DampingConstant = 1;
+	particleAPhys->SpringConstant = 5;
+
+	const EntityId particleB = scene.NewEntity();
+	particleAPhys->Partner = particleB;
+	const auto particleBMesh = scene.AddComponent<Mesh>(particleB);
+	const auto particleBPhys = scene.AddComponent<ParticleObj>(particleB);
+	const auto particleBTransform = scene.AddComponent<Transform>(particleB);
+
+	InitTransform(*particleBTransform, {0, 5, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
+	LoadFromObjectFile("./TestData/icosphere.obj", *particleBMesh);
+	particleBPhys->Mass = 5;
+	particleBPhys->Gravity = true;
+	particleBPhys->SpringMass = false;
+}
 
 //------------------------------------------------------------------------
 // Called before first update. Do any initial setup here.
@@ -35,55 +62,55 @@ Transform* c_transform;
 void Init()
 {
 	// ----- parameters ------
-	Vec3d look_at = { 0, 0, 0 };
-	Vec3d up = { 0, 1, 0 };
-	Vec3d cam_pos = { 0, 0, 35 };
-	double FOV_angle = 90;
-	double near_plane = 0.1;
-	double far_plane = 100;
-	double aspect_ratio = WINDOW_WIDTH / WINDOW_HEIGHT;
-	int resolution = WINDOW_HEIGHT * WINDOW_WIDTH;
-	
+	constexpr Vec3d lookAt = {0, 0, 0};
+	constexpr Vec3d up = {0, 1, 0};
+	constexpr Vec3d camPos = {0, 0, 35};
+	constexpr double fovAngle = 90;
+	constexpr double nearPlane = 0.1;
+	constexpr double farPlane = 100;
+	const double aspectRatio = WINDOW_WIDTH / WINDOW_HEIGHT;
+	const int resolution = WINDOW_HEIGHT * WINDOW_WIDTH;
+
 	scene = Scene();
-	
+
 	// ----- Init entities + components ------
 
-	EntityID cam_id = scene.NewEntity();
-	auto cam_transform = scene.AddComponent<Transform>(cam_id);
-	auto cam = scene.AddComponent<Camera>(cam_id);
+	const EntityId camId = scene.NewEntity();
+	const auto camTransform = scene.AddComponent<Transform>(camId);
+	const auto cam = scene.AddComponent<Camera>(camId);
 
-	c_transform = cam_transform;
+	cTransform = camTransform;
 
-	move_camera_transform(*cam_transform, cam_pos, up, look_at - cam_pos);
-	init_camera(*cam, FOV_angle, near_plane, far_plane, aspect_ratio);
-	
-	EntityID display_id = scene.NewEntity();
-	auto display = scene.AddComponent<Display>(display_id);
-	display->zbuffer = new double[resolution];
-	display->aspect_ratio = aspect_ratio;
-	display->resolution = resolution;
+	SetTransform(*camTransform, camPos, up, lookAt - camPos);
+	InitCamera(*cam, fovAngle, nearPlane, farPlane, aspectRatio);
 
-	EntityID mesh_id = scene.NewEntity();
-	auto mesh = scene.AddComponent<Mesh>(mesh_id);
-	auto mesh_transform = scene.AddComponent<Transform>(mesh_id);
-	auto phys = scene.AddComponent<PhysicsObj>(mesh_id);
+	const EntityId displayId = scene.NewEntity();
+	const auto display = scene.AddComponent<Display>(displayId);
+	display->Zbuffer = new double[resolution];
+	display->AspectRatio = aspectRatio;
+	display->Resolution = resolution;
 
-	phys->force = { 10, 20, 0 };
-	phys->velocity = { 5, 10, 0};
-	phys->mass = 5;
+	CreateMassSpring(scene);
 
-	init_transform(*mesh_transform, { 0, 1, 0 });
-	LoadFromObjectFile("./TestData/ship.obj", *mesh);
+	//EntityID mesh_id = scene.NewEntity();
+	//auto mesh = scene.AddComponent<Mesh>(mesh_id);
+	//auto mesh_transform = scene.AddComponent<Transform>(mesh_id);
+	//auto phys = scene.AddComponent<ParticleObj>(mesh_id);
+	//phys->force = { 10, 20, 0 };
+	//phys->velocity = { 5, 10, 0};
+	//phys->mass = 5;
+	//init_transform(*mesh_transform, { 0, 1, 0 });
+	//LoadFromObjectFile("./TestData/ship.obj", *mesh);
 
-	EntityID cube_id = scene.NewEntity();
-	auto cube_mesh = scene.AddComponent<Mesh>(cube_id);
-	auto cube_transform = scene.AddComponent<Transform>(cube_id);
-	init_transform(*cube_transform, { 0, -5, 0 }, {0, 0, 0}, {2, 1, 2});
-	LoadFromObjectFile("./TestData/cubeflat.obj", *cube_mesh);
+	const EntityId cubeId = scene.NewEntity();
+	const auto cubeMesh = scene.AddComponent<Mesh>(cubeId);
+	const auto cubeTransform = scene.AddComponent<Transform>(cubeId);
+	InitTransform(*cubeTransform, {0, -5, 0}, {0, 0, 0}, {2, 1, 2});
+	LoadFromObjectFile("./TestData/cubeflat.obj", *cubeMesh);
 
 	// ----- Init systems ------
-	cam_control.Init(cam, cam_transform);
-	renderer.Init(display, cam, cam_transform);
+	camControl.Init(cam, camTransform);
+	renderer.Init(display, cam, camTransform);
 }
 
 //-------------------------------------- ----------------------------------
@@ -93,9 +120,8 @@ void Init()
 void Update(float deltaTime)
 {
 	// move camera (update loop)
-	float deltaSecond = deltaTime / 1000;
-
-	cam_control.Update(deltaSecond);
+	const float deltaSecond = deltaTime / 1000;
+	camControl.Update(deltaSecond);
 	phys.Update(deltaSecond);
 }
 
@@ -107,7 +133,8 @@ void Render()
 {
 	renderer.Render();
 	char str[180];
-	sprintf(str, "Camera Coords (%f, %f, %f)", c_transform->position.x, c_transform->position.y, c_transform->position.z);
+	sprintf(str, "Camera Coords (%f, %f, %f)", cTransform->Position.X, cTransform->Position.Y,
+	        cTransform->Position.Z);
 	App::Print(100, 100, str);
 }
 

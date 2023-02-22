@@ -7,17 +7,10 @@ struct Mat3x3
 {
 	std::array<std::array<double, 3>, 3>  val;
 
-	Mat3x3 inverse();
+	Mat3x3 Inverse() const;
 
 	std::array<double, 3> operator[](const int i) const { return val[i]; }
 	std::array<double, 3>& operator[](const int i) { return val[i]; }
-
-	void transpose()
-	{
-		for (int i = 0; i < 3; i++)
-			for (int j = 0; j < 3; j++)
-				val[i][j] = (*this)[j][i];
-	}
 
 	static Mat3x3 Identity()
 	{
@@ -42,9 +35,9 @@ inline Mat3x3 operator*(const Mat3x3& a, const Mat3x3& b) {
 inline Vec3d operator*(const Mat3x3& a, const Vec3d& b)
 {
 	Vec3d c;
-	c.x = a[0][0] * b.x + a[0][1] * b.y + a[0][2];
-	c.y = a[1][0] * b.x + a[1][1] * b.y + a[1][2];
-	c.z = a[2][0] * b.x + a[2][1] * b.y + a[2][2];
+	c.X = a[0][0] * b.X + a[0][1] * b.Y + a[0][2];
+	c.Y = a[1][0] * b.X + a[1][1] * b.Y + a[1][2];
+	c.Z = a[2][0] * b.X + a[2][1] * b.Y + a[2][2];
 	return c;
 }
 
@@ -67,18 +60,10 @@ struct Mat4x4
 {
 	std::array<std::array<double, 4>, 4>  val;
 
-	Mat4x4 inverse();
+	Mat4x4 Inverse() const;
 
 	std::array<double, 4> operator[](const int i) const { return val[i]; }
 	std::array<double, 4>& operator[](const int i) { return val[i]; }
-
-
-	void transpose()
-	{
-		for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)
-				val[i][j] = (*this)[j][i];
-	}
 
 	static Mat4x4 Identity()
 	{
@@ -89,12 +74,14 @@ struct Mat4x4
 	}
 };
 
-inline Mat4x4 transpose(const Mat4x4& a)
+inline Mat4x4 Transpose(const Mat4x4& a)
 {
 	Mat4x4 m = {};
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
 			m[i][j] = a[i][j];
+
+	return m;
 }
 
 inline Mat4x4 operator*(const Mat4x4& a, const double& b)
@@ -121,16 +108,16 @@ inline Mat4x4 operator*(const Mat4x4& a, const Mat4x4& b) {
 inline Vec3d operator*(const Mat4x4& a, const Vec3d& b)
 {
 	Vec3d c;
-	c.x = a[0][0] * b.x + a[0][1] * b.y + a[0][2] * b.z + a[0][3];
-	c.y = a[1][0] * b.x + a[1][1] * b.y + a[1][2] * b.z + a[1][3];
-	c.z = a[2][0] * b.x + a[2][1] * b.y + a[2][2] * b.z + a[2][3];
-	const double w = a[3][0] * b.x + a[3][1] * b.y + a[3][2] * b.z + a[3][3];
+	c.X = a[0][0] * b.X + a[0][1] * b.Y + a[0][2] * b.Z + a[0][3];
+	c.Y = a[1][0] * b.X + a[1][1] * b.Y + a[1][2] * b.Z + a[1][3];
+	c.Z = a[2][0] * b.X + a[2][1] * b.Y + a[2][2] * b.Z + a[2][3];
+	const double w = a[3][0] * b.X + a[3][1] * b.Y + a[3][2] * b.Z + a[3][3];
 
 	if (w != 1)
 	{
-		c.x /= w;
-		c.y /= w;
-		c.z /= w;
+		c.X /= w;
+		c.Y /= w;
+		c.Z /= w;
 	}
 	return c;
 }

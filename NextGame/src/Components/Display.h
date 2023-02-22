@@ -5,7 +5,7 @@
  */
 struct Display
 {
-	double* zbuffer;
-	double aspect_ratio;
-	int resolution;
+	double* Zbuffer;
+	double AspectRatio;
+	int Resolution;
 };

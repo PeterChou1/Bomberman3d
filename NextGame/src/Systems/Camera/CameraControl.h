@@ -8,19 +8,21 @@
 class CameraControl : System
 {
 public:
+
 	CameraControl(Scene& scene) : System(scene) {}
+
 
 	void Init(Camera* c, Transform* t)
 	{
-		cam = c;
-		cam_transform = t;
+		Cam = c;
+		CamTransform = t;
 	}
 
 	void Update(float deltaTime) override;
 
 	~CameraControl() override = default;
 private:
-	Camera* cam;
-	Transform* cam_transform;
+	Camera* Cam{nullptr};
+	Transform* CamTransform{nullptr};
 };
 

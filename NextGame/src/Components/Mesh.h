@@ -7,12 +7,12 @@
 
 struct Triangle
 {
-	Vec3d p[3];
+	Vec3d P[3];
 };
 
 struct Mesh
 {
-	std::vector<Triangle> triangles; 
+	std::vector<Triangle> Triangles; 
 };
 
 /**
@@ -45,14 +45,14 @@ inline void LoadFromObjectFile(const std::string& file_name, Mesh& mesh)
 		if (line[0] == 'v')
 		{
 			Vec3d v;
-			s >> junk >> v.x >> v.y >> v.z;
+			s >> junk >> v.X >> v.Y >> v.Z;
 			vertexs.push_back(v);
 		}
 		else if (line[0] == 'f')
 		{
 			int f[3];
 			s >> junk >> f[0] >> f[1] >> f[2];
-			mesh.triangles.push_back({ vertexs[f[0] - 1], vertexs[f[1] - 1], vertexs[f[2] - 1] });
+			mesh.Triangles.push_back({ vertexs[f[0] - 1], vertexs[f[1] - 1], vertexs[f[2] - 1] });
 		}
 	}
 }

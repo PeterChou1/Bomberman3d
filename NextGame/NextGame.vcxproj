@@ -177,9 +177,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Components\Collider.h" />
     <ClInclude Include="src\Systems\Physics\PhysicsWorld.h" />
     <ClInclude Include="src\Components\Display.h" />
-    <ClInclude Include="src\Components\PhysicsObj.h" />
+    <ClInclude Include="src\Components\ParticleObj.h" />
     <ClInclude Include="src\Systems\Camera\CameraControl.h" />
     <ClInclude Include="src\Components\Mesh.h" />
     <ClInclude Include="src\Systems\Renderer\Renderer.h" />
@@ -193,7 +194,6 @@
     <ClInclude Include="src\Components\Camera.h" />
     <ClInclude Include="src\Components\Transform.h" />
     <ClInclude Include="src\ECS\Scene.h" />
-    <ClInclude Include="src\Math\Primitive.h" />
     <ClInclude Include="src\Math\Matrix.h" />
     <ClInclude Include="src\Math\Vec3d.h" />
     <ClInclude Include="src\Systems\System.h" />
@@ -211,7 +211,6 @@
     <ClCompile Include="src\App\SimpleSprite.cpp" />
     <ClCompile Include="src\App\TextureLoader.cpp" />
     <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\Math\Primitive.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

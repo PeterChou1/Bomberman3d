@@ -5,10 +5,10 @@
 class System
 {
 public:
-	System(Scene& scene) : m_scene(scene) {}
+	System(Scene& scene) : SystemScene(scene) {}
 	virtual void Update(float deltaTime) {}
 	virtual void Render() {}
-	virtual ~System() {}
+	virtual ~System() = default;
 protected:
-	Scene& m_scene;
+	Scene& SystemScene;
 };

@@ -4,51 +4,50 @@
 #include <vector>
 #include <iostream>
 
-const int MAX_COMPONENTS = 32;
-const int MAX_ENTITIES = 100;
-typedef unsigned long long EntityID;
-typedef unsigned int EntityIndex;
-typedef unsigned int EntityVersion;
-typedef std::bitset<MAX_COMPONENTS> ComponentMask;
+constexpr int MAX_COMPONENTS = 32;
+constexpr int MAX_ENTITIES = 100;
+using EntityId = unsigned long long;
+using EntityIndex = unsigned int;
+using EntityVersion = unsigned int;
+using ComponentMask = std::bitset<MAX_COMPONENTS>;
 
-extern int s_componentCounter;
+extern int sComponentCounter;
 
 template <class T>
 int GetId()
 {
-	static int s_componentId = s_componentCounter++;
-	return s_componentId;
+	static int sComponentId = sComponentCounter++;
+	return sComponentId;
 }
 
-inline EntityID CreateEntityId(EntityIndex index, EntityVersion version)
+inline EntityId CreateEntityId(const EntityIndex index, const EntityVersion version)
 {
 	// Shift the index up 32, and put the version in the bottom
-	return ((EntityID)index << 32) | ((EntityID)version);
+	return (static_cast<EntityId>(index) << 32) | static_cast<EntityId>(version);
 }
 
-inline EntityIndex GetEntityIndex(EntityID id)
+inline EntityIndex GetEntityIndex(const EntityId id)
 {
 	// Shift down 32 so we lose the version and get our index
 	return id >> 32;
 }
 
-inline EntityVersion GetEntityVersion(EntityID id)
+inline EntityVersion GetEntityVersion(const EntityId id)
 {
 	// Cast to a 32 bit int to get our version number (loosing the top 32 bits)
-	return (EntityVersion)id;
+	return static_cast<EntityVersion>(id);
 }
 
-inline bool IsEntityValid(EntityID id)
+inline bool IsEntityValid(const EntityId id)
 {
 	// Check if the index is our invalid index
-	return (id >> 32) != EntityIndex(-1);
+	return (id >> 32) != static_cast<EntityIndex>(-1);
 }
-
 
 
 struct ComponentPool
 {
-	ComponentPool(size_t elementsize)
+	explicit ComponentPool(const size_t elementsize)
 	{
 		// We'll allocate enough memory to hold MAX_ENTITIES, each with element size
 		elementSize = elementsize;
@@ -60,14 +59,14 @@ struct ComponentPool
 		delete[] pData;
 	}
 
-	void* get(size_t index)
+	void* Get(const size_t index) const
 	{
 		// looking up the component at the desired index
 		return pData + index * elementSize;
 	}
 
-	char* pData{ nullptr };
-	size_t elementSize{ 0 };
+	char* pData{nullptr};
+	size_t elementSize{0};
 };
 
 
@@ -76,51 +75,51 @@ struct Scene
 	// All the information we need about each entity
 	struct EntityDesc
 	{
-		EntityID id;
-		ComponentMask mask;
+		EntityId Id;
+		ComponentMask Mask;
 	};
 
-	std::vector<EntityDesc> entities;
+	std::vector<EntityDesc> Entities;
 	// store all components in a serial cache friendly format
-	std::vector<ComponentPool*> componentPools;
-	std::vector<EntityIndex> freeEntities;
+	std::vector<ComponentPool*> ComponentPools;
+	std::vector<EntityIndex> FreeEntities;
 
-	EntityID NewEntity()
+	EntityId NewEntity()
 	{
-		if (!freeEntities.empty())
+		if (!FreeEntities.empty())
 		{
-			EntityIndex newIndex = freeEntities.back();
-			freeEntities.pop_back();
-			EntityID newID = CreateEntityId(newIndex, GetEntityVersion(entities[newIndex].id));
-			entities[newIndex].id = newID;
-			return entities[newIndex].id;
+			const EntityIndex newIndex = FreeEntities.back();
+			FreeEntities.pop_back();
+			const EntityId newId = CreateEntityId(newIndex, GetEntityVersion(Entities[newIndex].Id));
+			Entities[newIndex].Id = newId;
+			return Entities[newIndex].Id;
 		}
-		entities.push_back({ CreateEntityId(EntityIndex(entities.size()), 0), ComponentMask() });
-		return entities.back().id;
+		Entities.push_back({CreateEntityId(static_cast<EntityIndex>(Entities.size()), 0), ComponentMask()});
+		return Entities.back().Id;
 	}
 
 	/*
 	 * AddComponent an component to an entity
 	 */
-	template<typename T>
-	T* AddComponent(EntityID id)
+	template <typename T>
+	T* AddComponent(const EntityId id)
 	{
-		int componentId = GetId<T>();
+		const int componentId = GetId<T>();
 
-		if (componentPools.size() <= componentId) // Not enough component pool
+		if (ComponentPools.size() <= componentId) // Not enough component pool
 		{
-			componentPools.resize(componentId + 1, nullptr);
+			ComponentPools.resize(componentId + 1, nullptr);
 		}
-		if (componentPools[componentId] == nullptr) // New component, make a new pool
+		if (ComponentPools[componentId] == nullptr) // New component, make a new pool
 		{
-			componentPools[componentId] = new ComponentPool(sizeof(T));
+			ComponentPools[componentId] = new ComponentPool(sizeof(T));
 		}
 
 		// Looks up the component in the pool, and initializes it with placement new
-		T* pComponent = new (componentPools[componentId]->get(GetEntityIndex(id))) T();
+		T* pComponent = new(ComponentPools[componentId]->Get(GetEntityIndex(id))) T();
 
 		// Set the bit for this component to true and return the created component
-		entities[GetEntityIndex(id)].mask.set(componentId);
+		Entities[GetEntityIndex(id)].Mask.set(componentId);
 		return pComponent;
 	}
 
@@ -128,136 +127,123 @@ struct Scene
 	/**
 	 * RemoveEntity an entity from the entity list
 	 */
-	template<typename T>
-	void RemoveEntity(EntityID id) {
+	template <typename T>
+	void RemoveEntity(const EntityId id)
+	{
 		// ensures you're not accessing an entity that has been deleted
-		if (entities[GetEntityIndex(id)].id != id)
+		if (Entities[GetEntityIndex(id)].Id != id)
 			return;
 
-		int componentId = GetId<T>();
-		entities[GetEntityIndex(id)].mask.reset(componentId);
+		const int componentId = GetId<T>();
+		Entities[GetEntityIndex(id)].Mask.reset(componentId);
 	}
 
 
 	/**
 	 * Destroy an entity and add
 	 */
-	void DestroyEntity(EntityID id)
+	void DestroyEntity(const EntityId id)
 	{
-		EntityID newID = CreateEntityId(EntityIndex(-1), GetEntityVersion(id) + 1);
-		entities[GetEntityIndex(id)].id = newID;
-		entities[GetEntityIndex(id)].mask.reset();
-		freeEntities.push_back(GetEntityIndex(id));
+		const EntityId newId = CreateEntityId(static_cast<EntityIndex>(-1), GetEntityVersion(id) + 1);
+		Entities[GetEntityIndex(id)].Id = newId;
+		Entities[GetEntityIndex(id)].Mask.reset();
+		FreeEntities.push_back(GetEntityIndex(id));
 	}
 
-	template<typename T>
-	T* Get(EntityID id)
+	template <typename T>
+	T* Get(const EntityId id)
 	{
-		int componentId = GetId<T>();
-		if (!entities[GetEntityIndex(id)].mask.test(componentId))
+		const int componentId = GetId<T>();
+		if (!Entities[GetEntityIndex(id)].Mask.test(componentId))
 			return nullptr;
 
-		T* pComponent = static_cast<T*>(componentPools[componentId]->get(GetEntityIndex(id)));
+		T* pComponent = static_cast<T*>(ComponentPools[componentId]->Get(GetEntityIndex(id)));
 		return pComponent;
 	}
-
 };
 
-
-// template<typename... ComponentTypes>
-struct SceneView
+struct SceneIterator
 {
-	SceneView(Scene& scene) : pScene(&scene)
+	SceneIterator(Scene& scene, int componentIds[], const int size) : PScene(&scene)
 	{
-		//if (sizeof...(ComponentTypes) == 0)
-		//{
-		//	all = true;
-		//}
-		//else
-		//{
-		//	// Unpack the template parameters into an initializer list
-		//	int componentIds[] = { 0, GetId<ComponentTypes>() ... };
-		//	for (int i = 1; i < (sizeof...(ComponentTypes) + 1); i++)
-		//		componentMask.set(componentIds[i]);
-		//}
-	}
-
-	void init(int componentIds[], int size)
-	{
-		for (int i = 0; i < size; i++) 
-			componentMask.set(componentIds[i]);
+		if (size == 0)
+		{
+			All = true;
+		}
+		else
+		{
+			for (int i = 0; i < size; i++)
+				ComponentMask.set(componentIds[i]);
+		}
 	}
 
 	struct Iterator
 	{
-		Iterator(Scene* pScene, EntityIndex index, ComponentMask mask, bool all)
-			: pScene(pScene), index(index), mask(mask), all(all) {}
-
-		EntityID operator*() const
+		Iterator(Scene* pScene, const EntityIndex index, const ComponentMask mask, const bool all)
+			: Index(index), PScene(pScene), Mask(mask), All(all)
 		{
-			return pScene->entities[index].id;
+		}
+
+		EntityId operator*() const
+		{
+			return PScene->Entities[Index].Id;
 		}
 
 		bool operator==(const Iterator& other) const
 		{
-			return index == other.index || index == pScene->entities.size();
+			return Index == other.Index || Index == PScene->Entities.size();
 		}
 
 		bool operator!=(const Iterator& other) const
 		{
-			return index != other.index && index != pScene->entities.size();
+			return Index != other.Index && Index != PScene->Entities.size();
 		}
 
-		bool ValidIndex()
+		bool ValidIndex() const
 		{
 			return
 				// It's a valid entity ID
-				IsEntityValid(pScene->entities[index].id) &&
+				IsEntityValid(PScene->Entities[Index].Id) &&
 				// It has the correct component mask
-				(all || mask == (mask & pScene->entities[index].mask));
+				(All || Mask == (Mask & PScene->Entities[Index].Mask));
 		}
 
 		Iterator& operator++()
 		{
 			do
 			{
-				index++;
-			} while (index < pScene->entities.size() && !ValidIndex());
+				Index++;
+			}
+			while (Index < PScene->Entities.size() && !ValidIndex());
 			return *this;
 		}
 
-		EntityIndex index;
-		Scene* pScene;
-		ComponentMask mask;
-		bool all{ false };
-
+		EntityIndex Index;
+		Scene* PScene;
+		ComponentMask Mask;
+		bool All{false};
 	};
 
-	const Iterator begin() const
+	Iterator begin() const
 	{
-		int firstIndex = 0;
-		while (firstIndex < pScene->entities.size() && 
-			   (componentMask != (componentMask & pScene->entities[firstIndex].mask) 
-				   || !IsEntityValid(pScene->entities[firstIndex].id)))
+		EntityIndex firstIndex = 0;
+		while (firstIndex < PScene->Entities.size() &&
+			(ComponentMask != (ComponentMask & PScene->Entities[firstIndex].Mask)
+				|| !IsEntityValid(PScene->Entities[firstIndex].Id)))
 		{
 			firstIndex++;
 		}
-		return Iterator(pScene, firstIndex, componentMask, all);
+		return {PScene, firstIndex, ComponentMask, All};
 	}
 
 
-	const Iterator end() const
+	Iterator end() const
 	{
-		return Iterator(pScene, EntityIndex(pScene->entities.size()), componentMask, all);
+		return {PScene, static_cast<EntityIndex>(PScene->Entities.size()), ComponentMask, All};
 	}
 
 
-	Scene* pScene{ nullptr };
-	ComponentMask componentMask;
-	bool all{ false };
+	Scene* PScene{nullptr};
+	ComponentMask ComponentMask;
+	bool All{false};
 };
-
-
-
-
-
