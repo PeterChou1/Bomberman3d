@@ -50,23 +50,23 @@ struct ComponentPool
 	explicit ComponentPool(const size_t elementsize)
 	{
 		// We'll allocate enough memory to hold MAX_ENTITIES, each with element size
-		elementSize = elementsize;
-		pData = new char[elementSize * MAX_ENTITIES];
+		ElementSize = elementsize;
+		PData = new char[ElementSize * MAX_ENTITIES];
 	}
 
 	~ComponentPool()
 	{
-		delete[] pData;
+		delete[] PData;
 	}
 
 	void* Get(const size_t index) const
 	{
 		// looking up the component at the desired index
-		return pData + index * elementSize;
+		return PData + index * ElementSize;
 	}
 
-	char* pData{nullptr};
-	size_t elementSize{0};
+	char* PData{nullptr};
+	size_t ElementSize{0};
 };
 
 

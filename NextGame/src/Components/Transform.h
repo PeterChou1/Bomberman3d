@@ -3,21 +3,38 @@
 #include "Math/Matrix.h"
 #include "Math/Vec3d.h"
 
+
+struct Quaternion
+{
+	
+};
+
 struct Transform
 {
 	// x, y, z coordinates
 	Vec3d Position;
 	// euler angles rotation
-	Vec3d Rotation;
+	// Vec3d Rotation;
 	// scaling factor
 	Vec3d Scaling;
 
-	Mat4x4 Local2World;
+	Mat4X4 Local2World;
 
-	Mat4x4 World2Local;
+	Mat4X4 World2Local;
 
 	Vec3d Up;
 };
+
+inline Mat3X3 GetRotationMatrix(const Transform& t)
+{
+	Mat3X3 rotation{};
+	rotation[0] = { t.Local2World[0][0], t.Local2World[0][1], t.Local2World[0][2] };
+	rotation[1] = { t.Local2World[1][0], t.Local2World[1][1], t.Local2World[1][2] };
+	rotation[2] = { t.Local2World[2][0], t.Local2World[2][1], t.Local2World[2][2] };
+	return rotation;
+}
+
+
 
 /**
  * \brief Move Transform t to a new position by adding Vec3d pos 
@@ -26,7 +43,7 @@ struct Transform
  */
 inline void MoveTransform(Transform& t, const Vec3d& pos)
 {
-	Mat4x4 moveMatrix{};
+	Mat4X4 moveMatrix{};
 	moveMatrix[0] = {1, 0, 0, pos.X};
 	moveMatrix[1] = {0, 1, 0, pos.Y};
 	moveMatrix[2] = {0, 0, 1, pos.Z};
@@ -37,11 +54,11 @@ inline void MoveTransform(Transform& t, const Vec3d& pos)
 	t.World2Local = t.Local2World.Inverse();
 }
 
-inline void rotate_transform(Transform& t, const Vec3d& newRotation)
+inline void RotateTransform(Transform& t, const Vec3d& newRotation)
 {
-	Mat4x4 rotationX{};
-	Mat4x4 rotationZ{};
-	Mat4x4 rotationY{};
+	Mat4X4 rotationX{};
+	Mat4X4 rotationZ{};
+	Mat4X4 rotationY{};
 	rotationX[0] = {1, 0, 0, 0};
 	rotationX[1] = {0, cos(newRotation.X), -sin(newRotation.X), 0};
 	rotationX[2] = {0, sin(newRotation.X), cos(newRotation.X), 0};
@@ -57,20 +74,19 @@ inline void rotate_transform(Transform& t, const Vec3d& newRotation)
 	rotationZ[2] = {0, 0, 1, 0};
 	rotationZ[3] = {0, 0, 0, 1};
 
-	t.Rotation = newRotation;
 	t.Local2World = t.Local2World * rotationX * rotationY * rotationZ;
 	t.World2Local = t.Local2World.Inverse();
 }
 
 
-inline void ScalingTransform(Transform& t, Vec3d new_scaling)
+inline void ScalingTransform(Transform& t, const Vec3d newScaling)
 {
-	Mat4x4 moveMatrix{};
-	moveMatrix[0] = {new_scaling.X, 0, 0, 0};
-	moveMatrix[1] = {0, new_scaling.Y, 0, 0};
-	moveMatrix[2] = {0, 0, new_scaling.Z, 0};
+	Mat4X4 moveMatrix{};
+	moveMatrix[0] = {newScaling.X, 0, 0, 0};
+	moveMatrix[1] = {0, newScaling.Y, 0, 0};
+	moveMatrix[2] = {0, 0, newScaling.Z, 0};
 	moveMatrix[3] = {0, 0, 0, 1};
-	t.Scaling = new_scaling;
+	t.Scaling = newScaling;
 	t.Local2World = t.Local2World * moveMatrix;
 	t.World2Local = t.Local2World.Inverse();
 }
@@ -99,6 +115,16 @@ inline void SetTransform(Transform& t, const Vec3d& pos, const Vec3d& top, const
 	t.World2Local = t.Local2World.Inverse();
 }
 
+
+inline void SetTransform(Transform& t, const Mat3X3& rotation, const Vec3d& pos)
+{
+	t.Position = pos;
+	t.Local2World[0] = { rotation[0][0], rotation[0][1], rotation[0][2], pos.X };
+	t.Local2World[1] = { rotation[1][0], rotation[1][1], rotation[1][2], pos.Y };
+	t.Local2World[2] = { rotation[2][0], rotation[2][1], rotation[2][2], pos.Z };
+	t.World2Local = t.Local2World.Inverse();
+}
+
 inline void InitTransform(Transform& t, const Vec3d& pos, const Vec3d& rotation = {0, 0, 0}, const Vec3d& scaling = {1, 1, 1})
 {
 	// setup camera to world matrix
@@ -106,7 +132,7 @@ inline void InitTransform(Transform& t, const Vec3d& pos, const Vec3d& rotation 
 	t.Local2World[1] = {0, 1, 0, 0};
 	t.Local2World[2] = {0, 0, 1, 0};
 	t.Local2World[3] = {0, 0, 0, 1};
-	rotate_transform(t, rotation);
+	RotateTransform(t, rotation);
 	ScalingTransform(t, scaling);
 	MoveTransform(t, pos);
 }

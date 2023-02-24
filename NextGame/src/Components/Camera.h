@@ -8,7 +8,7 @@
 struct Camera
 {
 	// OpenGL perspective matrix
-	Mat4x4 Perspective;
+	Mat4X4 Perspective;
 	EntityId CameraTarget;
 };
 

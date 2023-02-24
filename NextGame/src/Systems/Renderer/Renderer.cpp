@@ -10,9 +10,10 @@
 
 
 /**
- * \brief Takes vector a and outputs coords in screen space
+ * \brief Takes vector a and outputs coords in screen space of sceneCam
+ *        returns false if point is not on screen
  */
-bool toScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Display& display)
+bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Display& display)
 {
 	const Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
 
@@ -60,9 +61,9 @@ void Renderer::Render()
 			Vec3d t1{};
 			Vec3d t2{};
 			Vec3d t3{};
-			if (!toScreenSpace(p0, t1, *Cam, *CamTransform, *Display) ||
-				!toScreenSpace(p1, t2, *Cam, *CamTransform, *Display) ||
-				!toScreenSpace(p2, t3, *Cam, *CamTransform, *Display))
+			if (!ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display) ||
+				!ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display) ||
+				!ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display))
 				continue;
 
 

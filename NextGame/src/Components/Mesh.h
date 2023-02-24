@@ -20,12 +20,12 @@ struct Mesh
  *        to export files that work in blender export go
  *		  under export > wavefront obj > geometry
  *		  check triangulate faces, keep vertex order
- * \param file_name File name to be imported in game
+ * \param fileName File name to be imported in game
  * \param mesh Mesh to load data into
  */
-inline void LoadFromObjectFile(const std::string& file_name, Mesh& mesh)
+inline void LoadFromObjectFile(const std::string& fileName, Mesh& mesh)
 {
-	std::ifstream f(file_name);
+	std::ifstream f(fileName);
 	if (!f.is_open()) {
 		std::cout << "Warning file not found" << std::endl;
 		return;

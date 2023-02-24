@@ -42,23 +42,6 @@ namespace App
 		glEnd();
 	}
 
-	void DrawPoints(std::vector<std::array<float, 2>> points, float r, float g, float b)
-	{
-
-		glBegin(GL_POINTS);
-		for (auto point : points)
-		{
-			float x = point[0];
-			float y = point[1];
-#if APP_USE_VIRTUAL_RES		
-			APP_VIRTUAL_TO_NATIVE_COORDS(x,y);
-#endif
-			glColor3f(r, g, b);
-			glVertex2f(x, y);
-		}
-		glEnd();
-	}
-	
 	CSimpleSprite *CreateSprite(const char *fileName, int columns, int rows)
 	{
 		return new CSimpleSprite(fileName, columns, rows);

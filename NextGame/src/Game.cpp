@@ -11,6 +11,7 @@
 #include "Components/Display.h"
 #include "Components/Mesh.h"
 #include "Components/ParticleObj.h"
+#include "Components/RigidBody.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
 #include "Systems/Camera/CameraControl.h"
@@ -26,6 +27,7 @@ Renderer renderer = Renderer(scene);
 PhysicsWorld phys = PhysicsWorld(scene);
 // TODO: Camera transform used for debug purposes (REMOVE LATER)
 Transform* cTransform;
+Transform* cubeTransform;
 
 void CreateMassSpring(Scene& scene)
 {
@@ -64,7 +66,7 @@ void Init()
 	// ----- parameters ------
 	constexpr Vec3d lookAt = {0, 0, 0};
 	constexpr Vec3d up = {0, 1, 0};
-	constexpr Vec3d camPos = {0, 0, 35};
+	constexpr Vec3d camPos = {0, 15, 15};
 	constexpr double fovAngle = 90;
 	constexpr double nearPlane = 0.1;
 	constexpr double farPlane = 100;
@@ -90,23 +92,24 @@ void Init()
 	display->AspectRatio = aspectRatio;
 	display->Resolution = resolution;
 
-	CreateMassSpring(scene);
-
-	//EntityID mesh_id = scene.NewEntity();
-	//auto mesh = scene.AddComponent<Mesh>(mesh_id);
-	//auto mesh_transform = scene.AddComponent<Transform>(mesh_id);
-	//auto phys = scene.AddComponent<ParticleObj>(mesh_id);
-	//phys->force = { 10, 20, 0 };
-	//phys->velocity = { 5, 10, 0};
-	//phys->mass = 5;
-	//init_transform(*mesh_transform, { 0, 1, 0 });
-	//LoadFromObjectFile("./TestData/ship.obj", *mesh);
-
 	const EntityId cubeId = scene.NewEntity();
 	const auto cubeMesh = scene.AddComponent<Mesh>(cubeId);
-	const auto cubeTransform = scene.AddComponent<Transform>(cubeId);
-	InitTransform(*cubeTransform, {0, -5, 0}, {0, 0, 0}, {2, 1, 2});
-	LoadFromObjectFile("./TestData/cubeflat.obj", *cubeMesh);
+	cubeTransform = scene.AddComponent<Transform>(cubeId);
+	const auto rigidBody = scene.AddComponent<RigidBody>(cubeId);
+
+	InitTransform(*cubeTransform, {0, 5, 0});
+	LoadFromObjectFile("./TestData/unitcube.obj", *cubeMesh);
+	SetUpRigidBody(*rigidBody, *cubeTransform);
+
+
+
+	const EntityId floorId = scene.NewEntity();
+	const auto floorMesh = scene.AddComponent<Mesh>(floorId);
+	const auto floorTransform = scene.AddComponent<Transform>(floorId);
+	LoadFromObjectFile("./TestData/cubeflat.obj", *floorMesh);
+	InitTransform(*floorTransform, { 0, 0, 0 });
+
+
 
 	// ----- Init systems ------
 	camControl.Init(cam, camTransform);
@@ -132,10 +135,17 @@ void Update(float deltaTime)
 void Render()
 {
 	renderer.Render();
-	char str[180];
-	sprintf(str, "Camera Coords (%f, %f, %f)", cTransform->Position.X, cTransform->Position.Y,
-	        cTransform->Position.Z);
-	App::Print(100, 100, str);
+
+
+	char str1[180];
+	char str2[180];
+	char str3[180];
+	sprintf(str1, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[0][0], cubeTransform->Local2World[0][1], cubeTransform->Local2World[0][2], cubeTransform->Local2World[0][3]);
+	App::Print(100, 150, str1);
+	sprintf(str2, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[1][0], cubeTransform->Local2World[1][1], cubeTransform->Local2World[1][2], cubeTransform->Local2World[1][3]);
+	App::Print(100, 100, str2);
+	sprintf(str3, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[2][0], cubeTransform->Local2World[2][1], cubeTransform->Local2World[2][2], cubeTransform->Local2World[2][3]);
+	App::Print(100, 50, str3);
 }
 
 //------------------------------------------------------------------------

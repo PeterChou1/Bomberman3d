@@ -39,6 +39,10 @@ inline void Normalize(Vec3d& a)
 	a.Z /= n;
 }
 
+inline bool operator==(const Vec3d& a, const Vec3d& b)
+{
+	return a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+}
 
 inline Vec3d operator*(const double& a, const Vec3d& b)
 {

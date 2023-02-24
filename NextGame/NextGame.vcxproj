@@ -178,6 +178,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Components\Collider.h" />
+    <ClInclude Include="src\Components\RigidBody.h" />
+    <ClInclude Include="src\Math\Quaternion.h" />
     <ClInclude Include="src\Systems\Physics\PhysicsWorld.h" />
     <ClInclude Include="src\Components\Display.h" />
     <ClInclude Include="src\Components\ParticleObj.h" />
