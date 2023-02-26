@@ -6,10 +6,23 @@
 //---------------------------------------------------------------------------------
 #include <sstream>
 
+
 struct Vec3d
 {
 	double X, Y, Z;
+	double& operator[](const size_t index) 
+	{
+		switch (index)
+		{
+		case 0: return X;
+		case 1: return Y;
+		case 2: return Z;
+		default:
+			throw std::out_of_range("Index out of bounds");
+		}
+	}
 };
+
 
 inline Vec3d Cross(const Vec3d& a, const Vec3d& b)
 {

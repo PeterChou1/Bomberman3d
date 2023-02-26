@@ -11,6 +11,7 @@
 #include "SimpleController.h"
 #include "SimpleSprite.h"
 #include <array>
+#include <algorithm>
 //#include <iostream>
 #include "../glut/include/GL/freeglut_ext.h"
 //---------------------------------------------------------------------------------
@@ -66,6 +67,36 @@ namespace App
 		APP_NATIVE_TO_VIRTUAL_COORDS(x, y);
 #endif
 	}
+
+	void GetMouseAxis(float& mouseX, float& mouseY)
+	{
+		float x, y;
+		GetMousePos(x, y);
+		// normalize it map it to (-1, 1)
+		if (abs(x - APP_VIRTUAL_WIDTH/2) < DEADZONE_WIDTH)
+		{
+			mouseX = 0;
+		}
+		else
+		{
+			mouseX = x / APP_VIRTUAL_WIDTH * 2 - 1;
+		}
+
+		if (abs(y - APP_VIRTUAL_HEIGHT/2) < DEADZONE_WIDTH)
+		{
+			mouseY = 0;
+		}
+		else
+		{
+			mouseY = y / APP_VIRTUAL_HEIGHT * 2 - 1;
+		}
+		// clamp Mouse X, Y
+		mouseY = mouseY > 1 ? 1 : mouseY;
+		mouseY = mouseY < -1 ? -1 : mouseY;
+		mouseX = mouseX > 1 ? 1 : mouseX;
+		mouseX = mouseX < -1 ? -1 : mouseX;
+	}
+
 	void PlaySound(const char *fileName, bool looping)
 	{
 		DWORD flags = (looping) ? DSBPLAY_LOOPING : 0;

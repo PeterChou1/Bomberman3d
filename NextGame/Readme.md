@@ -102,3 +102,47 @@ void FillTriangle(Triangle t, Camera scene_cam, double *zbuffer)
 	}
 	//App::DrawPoints(points, 1, 0, 0);
 }
+
+# Spring Mass
+
+void CreateMassSpring(Scene& scene)
+{
+	const EntityId particleA = scene.NewEntity();
+	const auto particleAMesh = scene.AddComponent<Mesh>(particleA);
+	const auto particleAPhys = scene.AddComponent<ParticleObj>(particleA);
+	const auto particleATransform = scene.AddComponent<Transform>(particleA);
+
+	InitTransform(*particleATransform, {0, 10, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
+	LoadFromObjectFile("./TestData/icosphere.obj", *particleAMesh);
+	particleAPhys->Mass = 1000;
+	particleAPhys->Gravity = false;
+	particleAPhys->SpringMass = true;
+	particleAPhys->RestLength = 4;
+	particleAPhys->DampingConstant = 1;
+	particleAPhys->SpringConstant = 5;
+
+	const EntityId particleB = scene.NewEntity();
+	particleAPhys->Partner = particleB;
+	const auto particleBMesh = scene.AddComponent<Mesh>(particleB);
+	const auto particleBPhys = scene.AddComponent<ParticleObj>(particleB);
+	const auto particleBTransform = scene.AddComponent<Transform>(particleB);
+
+	InitTransform(*particleBTransform, {0, 5, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
+	LoadFromObjectFile("./TestData/icosphere.obj", *particleBMesh);
+	particleBPhys->Mass = 5;
+	particleBPhys->Gravity = true;
+	particleBPhys->SpringMass = false;
+}
+
+# Test
+
+void TestRotation()
+{
+	Mat4X4 test{};
+	test[0] = { 0.5, -0.1464, 0.8536, 0 };
+	test[1] = { 0.5, 0.8536, -0.1464, 0 };
+	test[2] = { -0.7071, 0.5, 0.5, 0 };
+	test[3] = { 0, 0, 0, 1 };
+	Vec3d eulerAngles{};
+	GetEulerAngles(test, eulerAngles);
+}

@@ -25,38 +25,10 @@ Scene scene;
 CameraControl camControl = CameraControl(scene);
 Renderer renderer = Renderer(scene);
 PhysicsWorld phys = PhysicsWorld(scene);
-// TODO: Camera transform used for debug purposes (REMOVE LATER)
-Transform* cTransform;
-Transform* cubeTransform;
+// TODO: transform used for debug purposes (REMOVE LATER)
+Transform* transform;
+Transform* cameraTransform;
 
-void CreateMassSpring(Scene& scene)
-{
-	const EntityId particleA = scene.NewEntity();
-	const auto particleAMesh = scene.AddComponent<Mesh>(particleA);
-	const auto particleAPhys = scene.AddComponent<ParticleObj>(particleA);
-	const auto particleATransform = scene.AddComponent<Transform>(particleA);
-
-	InitTransform(*particleATransform, {0, 10, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
-	LoadFromObjectFile("./TestData/icosphere.obj", *particleAMesh);
-	particleAPhys->Mass = 1000;
-	particleAPhys->Gravity = false;
-	particleAPhys->SpringMass = true;
-	particleAPhys->RestLength = 4;
-	particleAPhys->DampingConstant = 1;
-	particleAPhys->SpringConstant = 5;
-
-	const EntityId particleB = scene.NewEntity();
-	particleAPhys->Partner = particleB;
-	const auto particleBMesh = scene.AddComponent<Mesh>(particleB);
-	const auto particleBPhys = scene.AddComponent<ParticleObj>(particleB);
-	const auto particleBTransform = scene.AddComponent<Transform>(particleB);
-
-	InitTransform(*particleBTransform, {0, 5, 0}, {0, 0, 0}, {0.5, 0.5, 0.5});
-	LoadFromObjectFile("./TestData/icosphere.obj", *particleBMesh);
-	particleBPhys->Mass = 5;
-	particleBPhys->Gravity = true;
-	particleBPhys->SpringMass = false;
-}
 
 //------------------------------------------------------------------------
 // Called before first update. Do any initial setup here.
@@ -80,9 +52,6 @@ void Init()
 	const EntityId camId = scene.NewEntity();
 	const auto camTransform = scene.AddComponent<Transform>(camId);
 	const auto cam = scene.AddComponent<Camera>(camId);
-
-	cTransform = camTransform;
-
 	SetTransform(*camTransform, camPos, up, lookAt - camPos);
 	InitCamera(*cam, fovAngle, nearPlane, farPlane, aspectRatio);
 
@@ -92,24 +61,29 @@ void Init()
 	display->AspectRatio = aspectRatio;
 	display->Resolution = resolution;
 
-	const EntityId cubeId = scene.NewEntity();
-	const auto cubeMesh = scene.AddComponent<Mesh>(cubeId);
-	cubeTransform = scene.AddComponent<Transform>(cubeId);
-	const auto rigidBody = scene.AddComponent<RigidBody>(cubeId);
+	// const EntityId cubeId = scene.NewEntity();
+	// const auto cubeMesh = scene.AddComponent<Mesh>(cubeId);
+	// cubeTransform = scene.AddComponent<Transform>(cubeId);
+	// const auto rigidBody = scene.AddComponent<RigidBody>(cubeId);
+	// InitTransform(*cubeTransform, {0, 5, 0});
+	// LoadFromObjectFile("./TestData/unitcube.obj", *cubeMesh);
+	// SetUpRigidBody(*rigidBody, *cubeTransform);
 
-	InitTransform(*cubeTransform, {0, 5, 0});
-	LoadFromObjectFile("./TestData/unitcube.obj", *cubeMesh);
-	SetUpRigidBody(*rigidBody, *cubeTransform);
 
+	const EntityId meshId = scene.NewEntity();
+	const auto mesh = scene.AddComponent<Mesh>(meshId);
+	const auto meshTransform = scene.AddComponent<Transform>(meshId);
+	InitTransform(*meshTransform, { 0, 5, 0 });
+	LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
 
+	transform = meshTransform;
+	cameraTransform = camTransform;
 
 	const EntityId floorId = scene.NewEntity();
-	const auto floorMesh = scene.AddComponent<Mesh>(floorId);
 	const auto floorTransform = scene.AddComponent<Transform>(floorId);
+	const auto floorMesh = scene.AddComponent<Mesh>(floorId);
 	LoadFromObjectFile("./TestData/cubeflat.obj", *floorMesh);
 	InitTransform(*floorTransform, { 0, 0, 0 });
-
-
 
 	// ----- Init systems ------
 	camControl.Init(cam, camTransform);
@@ -124,6 +98,10 @@ void Update(float deltaTime)
 {
 	// move camera (update loop)
 	const float deltaSecond = deltaTime / 1000;
+
+	// Rotate mesh for testing
+	RotateTransform(*transform, {0.1, 0.1, 0});
+
 	camControl.Update(deltaSecond);
 	phys.Update(deltaSecond);
 }
@@ -140,12 +118,23 @@ void Render()
 	char str1[180];
 	char str2[180];
 	char str3[180];
-	sprintf(str1, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[0][0], cubeTransform->Local2World[0][1], cubeTransform->Local2World[0][2], cubeTransform->Local2World[0][3]);
-	App::Print(100, 150, str1);
-	sprintf(str2, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[1][0], cubeTransform->Local2World[1][1], cubeTransform->Local2World[1][2], cubeTransform->Local2World[1][3]);
-	App::Print(100, 100, str2);
-	sprintf(str3, "(%f, %f, %f) (%f)\n", cubeTransform->Local2World[2][0], cubeTransform->Local2World[2][1], cubeTransform->Local2World[2][2], cubeTransform->Local2World[2][3]);
-	App::Print(100, 50, str3);
+	char str4[180];
+	char str5[180];
+
+	//sprintf(str1, "(%f, %f, %f) (%f)\n", transform->Local2World[0][0], transform->Local2World[0][1], transform->Local2World[0][2], transform->Local2World[0][3]);
+	//App::Print(100, 150, str1);
+	//sprintf(str2, "(%f, %f, %f) (%f)\n", transform->Local2World[1][0], transform->Local2World[1][1], transform->Local2World[1][2], transform->Local2World[1][3]);
+	//App::Print(100, 100, str2);
+	//sprintf(str3, "(%f, %f, %f) (%f)\n", transform->Local2World[2][0], transform->Local2World[2][1], transform->Local2World[2][2], transform->Local2World[2][3]);
+	//App::Print(100, 50, str3);
+	Vec3d r;
+	GetEulerAngles(cameraTransform->Local2World, r);
+	sprintf(str4, "Euler Angles (X: %f, Y: %f, Z: %f) rotation[2][0] (%f)", r.X,  r.Y, r.Z, cameraTransform->Local2World[2][0]);
+	App::Print(100, 200, str4);
+	float MouseX, MouseY;
+	App::GetMouseAxis(MouseX, MouseY);
+	sprintf(str5, "Mouse: (%f %f)", MouseX, MouseY);
+	App::Print(100, 250, str5);
 }
 
 //------------------------------------------------------------------------

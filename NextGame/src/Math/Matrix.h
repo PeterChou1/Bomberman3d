@@ -20,6 +20,7 @@ struct Mat3X3
 		return identity;
 	}
 };
+
 inline void normalize(Mat3X3& a)
 {
 	double col0Mag = sqrt(pow(a[0][0], 2) + pow(a[1][0], 2) + pow(a[2][0], 2));

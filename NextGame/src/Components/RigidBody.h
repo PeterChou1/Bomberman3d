@@ -13,7 +13,6 @@ struct RigidBody
 	Mat3X3 InertialTensorBodyInverse;    // IBody^-1(t) 
 
 	// state variables
-
 	Vec3d LinearMomentum;                // P(t)
 	Vec3d AngularMomentum;               // L(t)
 
@@ -25,7 +24,6 @@ struct RigidBody
 	Vec3d Torque;                        // T(t)
 
 	// Total Force and Torque exerted
-
 	bool IsStatic;
 };
 
@@ -50,11 +48,11 @@ inline void SetUpRigidBody(RigidBody& rb, const Transform& t)
 	rb.LinearMomentum = {};
 	rb.AngularMomentum = {};
 	rb.Force = {0, 0, 0};
-	rb.Torque = {50, 25, 0};
+	rb.Torque = {50, 25, 10};
 	rb.Velocity = rb.LinearMomentum / rb.Mass;
 	SetInertialTensorBody(rb, t.Scaling);
-	const Mat3X3 Rotation = GetRotationMatrix(t);
-	rb.InertialTensorInverse = Rotation * rb.InertialTensorBodyInverse * Transpose(Rotation);
+	const Mat3X3 rotation = GetRotationMatrix(t);
+	rb.InertialTensorInverse = rotation * rb.InertialTensorBodyInverse * Transpose(rotation);
 	rb.AngularVelocity = rb.InertialTensorInverse * rb.AngularMomentum;
 }
 
@@ -67,19 +65,19 @@ inline void IntegrationStep(RigidBody& rb, Transform& t,  float deltaTime)
 	// Step 1: ODE solve using basic Euler method
 
 	// position = dt * velocity
-	Vec3d newPos  = t.Position + rb.Velocity * deltaTime;
+	const Vec3d newPos  = t.Position + rb.Velocity * deltaTime;
 	// Rotation Matrix delta = (Star(Angular Velocity) * Rotation Matrix)
-	Mat3X3 AngularMatrix{};
-	AngularMatrix[0] = { 0, -rb.AngularVelocity.Z, rb.AngularVelocity.Y };
-	AngularMatrix[1] = { rb.AngularVelocity.Z, 0, -rb.AngularVelocity.X  };
-	AngularMatrix[2] = { -rb.AngularVelocity.Y, rb.AngularVelocity.X, 0  };
+	Mat3X3 angularMatrix{};
+	angularMatrix[0] = { 0, -rb.AngularVelocity.Z, rb.AngularVelocity.Y };
+	angularMatrix[1] = { rb.AngularVelocity.Z, 0, -rb.AngularVelocity.X  };
+	angularMatrix[2] = { -rb.AngularVelocity.Y, rb.AngularVelocity.X, 0  };
 
-	Mat3X3 Rotation = GetRotationMatrix(t);
-	Mat3X3 RotationDelta = AngularMatrix * Rotation;
-	Rotation = Rotation + RotationDelta * deltaTime;
+	Mat3X3 rotation = GetRotationMatrix(t);
+	const Mat3X3 rotationDelta = angularMatrix * rotation;
+	rotation = rotation + rotationDelta * deltaTime;
 
 	// Update Transform
-	SetTransform(t, Rotation, newPos);
+	SetTransform(t, rotation, newPos);
 
 	// linearMomentum = dt * force
 	rb.LinearMomentum = rb.LinearMomentum + rb.Force * deltaTime;
@@ -91,13 +89,13 @@ inline void IntegrationStep(RigidBody& rb, Transform& t,  float deltaTime)
 	// velocity = linearMomentum / Mass
 	rb.Velocity = rb.LinearMomentum / rb.Mass;
 	// inertialTensorInverse = R * inertialTensorBodyInverse * R^T
-	rb.InertialTensorInverse = Rotation * rb.InertialTensorBodyInverse * Transpose(Rotation);
+	rb.InertialTensorInverse = rotation * rb.InertialTensorBodyInverse * Transpose(rotation);
 	// AngularVelocity = inertialTensorInverse * AngularMomentum
 	rb.AngularVelocity = rb.InertialTensorInverse * rb.AngularMomentum;
 
 	// Compute Force and Torque (derivative of Linear Momentum and Angular Momentum)
-	// the forces applied are user defined
-	const Vec3d gravity = { 0, -9.81, 0 };
+	// the Forces applied are user defined
+	constexpr Vec3d gravity = { 0, -9.81, 0 };
 	rb.Force = gravity;
 	rb.Torque = {};
 }

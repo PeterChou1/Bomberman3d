@@ -34,9 +34,9 @@ inline void LoadFromObjectFile(const std::string& fileName, Mesh& mesh)
 
 	while (!f.eof())
 	{
-		// TODO: dangerous assumption assumes obj file is limited by 128 char per line works for our purposes but if
-		// TODO: this game increase in scope this issue needs to address
-		// TODO: also this loader only supports vertex and faces
+		// TODO: dangerous assumption assumes obj file is limited by 128 char per line
+		// TODO: works for our purposes but if this game increase in scope this is an issue
+		// TODO: that needs to be address also this loader only supports vertex and faces
 		char line[128];
 		f.getline(line, 128);
 		std::stringstream s;
