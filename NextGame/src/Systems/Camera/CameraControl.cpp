@@ -3,11 +3,6 @@
 #include "app/app.h"
 
 
-void GetMouseAxis()
-{
-	
-}
-
 
 void CameraControl::Update(float deltaTime)
 {
@@ -33,7 +28,8 @@ void CameraControl::Update(float deltaTime)
 	}
 	float mouseX, mouseY;
 	App::GetMouseAxis(mouseX, mouseY);
-
-	const Vec3d rotation = { mouseY, -1 * mouseX, 0};
+	Vec3d curRot = Quat2Euler(CamTransform->Rotation);
+	//const Vec3d rotation = { mouseY, -mouseX, 0};
+	const Vec3d rotation = { 0, 0, 0 };
 	MoveRotateTransform(*CamTransform, direction, rotation * deltaTime);
 }

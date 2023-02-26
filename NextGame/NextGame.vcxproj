@@ -178,8 +178,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Components\Collider.h" />
+    <ClInclude Include="src\Components\Mouse.h" />
     <ClInclude Include="src\Components\RigidBody.h" />
     <ClInclude Include="src\Math\Quaternion.h" />
+    <ClInclude Include="src\Systems\Mouse\MouseSystem.h" />
     <ClInclude Include="src\Systems\Physics\PhysicsWorld.h" />
     <ClInclude Include="src\Components\Display.h" />
     <ClInclude Include="src\Components\ParticleObj.h" />
@@ -203,6 +205,7 @@
     <ClInclude Include="src\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Systems\Mouse\MouseSystem.cpp" />
     <ClCompile Include="src\Systems\Physics\PhysicsWorld.cpp" />
     <ClCompile Include="src\Systems\Camera\CameraControl.cpp" />
     <ClCompile Include="src\Systems\Renderer\Renderer.cpp" />

@@ -16,6 +16,7 @@
 bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Display& display)
 {
 	const Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
+	//const Vec3d proj = sceneCam.Perspective * World2Local(camTransform, a);
 
 	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
 		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
@@ -52,6 +53,9 @@ void Renderer::Render()
 			Vec3d p0 = meshTransform->Local2World * triangle.P[0],
 			      p1 = meshTransform->Local2World * triangle.P[1],
 			      p2 = meshTransform->Local2World * triangle.P[2];
+			//Vec3d p0 = Local2World(*meshTransform, triangle.P[0]),
+			//	  p1 = Local2World(*meshTransform, triangle.P[1]),
+			//	  p2 = Local2World(*meshTransform, triangle.P[2]);
 
 			Vec3d normal = Cross(p0 - p1, p0 - p2);
 			Vec3d lookAt = p0 - CamTransform->Position;

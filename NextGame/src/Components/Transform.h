@@ -1,25 +1,41 @@
 #pragma once
+#include <cassert>
 #include <iostream>
 
 #include "app/AppSettings.h"
 #include "Math/Matrix.h"
+#include "Math/Quaternion.h"
 #include "Math/Vec3d.h"
 
 struct Transform
 {
 	// x, y, z coordinates
 	Vec3d Position;
-
+	// quaternion representing rotations
+	Quat Rotation;
 	// scaling factor
 	Vec3d Scaling;
 
 	Mat4X4 Local2World;
 
 	Mat4X4 World2Local;
-
-	Vec3d Up;
 };
 
+inline Vec3d Local2World(const Transform& t, const Vec3d& a)
+{
+	Vec3d world;
+	world = RotateVector(t.Rotation, a);
+	world = t.Position + world;
+	return world;
+}
+
+inline Vec3d World2Local(const Transform& t, const Vec3d& a)
+{
+	Vec3d local;
+	local = a - t.Position;
+	local = RotateVector(Conjugate(t.Rotation), local);
+	return local;
+}
 
 inline Mat3X3 GetRotationMatrix(const Transform& t)
 {
@@ -63,38 +79,28 @@ inline void GetEulerAngles(Mat4X4& rotation, Vec3d& eulerAngles)
 
 
 /**
- * \brief Move Transform t to a new position by adding Vec3d pos and rotate by rot
+ * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot
  */
 inline void MoveRotateTransform(Transform& t, const Vec3d& pos = { 0, 0, 0 }, const Vec3d& rot = {0, 0, 0})
 {
-	Mat4X4 moveMatrix{};
-	moveMatrix[0] = { 1, 0, 0, pos.X };
-	moveMatrix[1] = { 0, 1, 0, pos.Y };
-	moveMatrix[2] = { 0, 0, 1, pos.Z };
-	moveMatrix[3] = { 0, 0, 0, 1 };
-	Mat4X4 rotationX{};
-	Mat4X4 rotationZ{};
-	Mat4X4 rotationY{};
-	rotationX[0] = { 1, 0, 0, 0 };
-	rotationX[1] = { 0, cos(rot.X), -sin(rot.X), 0 };
-	rotationX[2] = { 0, sin(rot.X), cos(rot.X), 0 };
-	rotationX[3] = { 0, 0, 0, 1 };
+	Vec3d curRot = Quat2Euler(t.Rotation);
+	Vec3d newRot = { rot.X, rot.Y, -curRot.X };
+	Quat q = Euler2Quat(newRot);
+	Mat4X4 rotation{};
+	t.Rotation = t.Rotation * q;
+	Normalize(t.Rotation);
 
-	rotationY[0] = { cos(rot.Y), 0, sin(rot.Y), 0 };
-	rotationY[1] = { 0, 1, 0, 0 };
-	rotationY[2] = { -sin(rot.Y), 0, cos(rot.Y), 0 };
-	rotationY[3] = { 0, 0, 0, 1 };
 
-	Vec3d eulerAngles;
-	GetEulerAngles(t.Local2World, eulerAngles);
-
-	rotationZ[0] = { cos(-eulerAngles.Z), -sin(-eulerAngles.Z), 0, 0 };
-	rotationZ[1] = { sin(-eulerAngles.Z), cos(-eulerAngles.Z), 0, 0 };
-	rotationZ[2] = { 0, 0, 1, 0 };
-	rotationZ[3] = { 0, 0, 0, 1 };
+	Quat2Matrix(t.Rotation, rotation);
 
 	t.Position = t.Position + pos;
-	t.Local2World = t.Local2World * moveMatrix * rotationX * rotationY * rotationZ;
+	Mat4X4 moveMatrix{};
+	moveMatrix[0] = { 1, 0, 0, t.Position.X };
+	moveMatrix[1] = { 0, 1, 0, t.Position.Y };
+	moveMatrix[2] = { 0, 0, 1, t.Position.Z };
+	moveMatrix[3] = { 0, 0, 0, 1 };
+
+	t.Local2World = moveMatrix * rotation;
 	t.World2Local = t.Local2World.Inverse();
 }
 
@@ -120,63 +126,23 @@ inline void MoveTransform(Transform& t, const Vec3d& pos)
  */
 inline void RotateTransform(Transform& t, const Vec3d& newRotation)
 {
-	Mat4X4 rotationX{};
-	Mat4X4 rotationZ{};
-	Mat4X4 rotationY{};
-	rotationX[0] = {1, 0, 0, 0};
-	rotationX[1] = {0, cos(newRotation.X), -sin(newRotation.X), 0};
-	rotationX[2] = {0, sin(newRotation.X), cos(newRotation.X), 0};
-	rotationX[3] = {0, 0, 0, 1};
-
-	rotationY[0] = {cos(newRotation.Y), 0, sin(newRotation.Y), 0};
-	rotationY[1] = {0, 1, 0, 0};
-	rotationY[2] = {-sin(newRotation.Y), 0, cos(newRotation.Y), 0};
-	rotationY[3] = {0, 0, 0, 1};
-
-	rotationZ[0] = {cos(newRotation.Z), -sin(newRotation.Z), 0, 0};
-	rotationZ[1] = {sin(newRotation.Z), cos(newRotation.Z), 0, 0};
-	rotationZ[2] = {0, 0, 1, 0};
-	rotationZ[3] = {0, 0, 0, 1};
-
-	t.Local2World = t.Local2World * rotationX * rotationY * rotationZ;
+	Mat4X4 rotation{};
+	Quat q = Euler2Quat(newRotation);
+	Quat2Matrix(q, rotation);
+	t.Local2World = t.Local2World * rotation;
 	t.World2Local = t.Local2World.Inverse();
 }
 
 
 inline void ScalingTransform(Transform& t, const Vec3d newScaling)
 {
-	Mat4X4 moveMatrix{};
-	moveMatrix[0] = {newScaling.X, 0, 0, 0};
-	moveMatrix[1] = {0, newScaling.Y, 0, 0};
-	moveMatrix[2] = {0, 0, newScaling.Z, 0};
-	moveMatrix[3] = {0, 0, 0, 1};
+	Mat4X4 scaleMatrix{};
+	scaleMatrix[0] = {newScaling.X, 0, 0, 0};
+	scaleMatrix[1] = {0, newScaling.Y, 0, 0};
+	scaleMatrix[2] = {0, 0, newScaling.Z, 0};
+	scaleMatrix[3] = {0, 0, 0, 1};
 	t.Scaling = newScaling;
-	t.Local2World = t.Local2World * moveMatrix;
-	t.World2Local = t.Local2World.Inverse();
-}
-
-/**
- * \brief Set transform t to pos with orientation set by top and gaze 
- * \param t transform to set
- * \param pos new position of the transform
- * \param top vector sets the up vector (up vector is always perpendicular to the forward and top vector)
- * \param gaze vector which sets forward vector (the forward vector is points in the opposite direction of gaze)
- */
-inline void SetTransform(Transform& t, const Vec3d& pos, const Vec3d& top, const Vec3d& gaze)
-{
-	const Vec3d forward = -1 * gaze / Mag(gaze);
-	Vec3d right = Cross(top, forward);
-	right = right / Mag(right);
-	const Vec3d up = Cross(forward, right);
-
-	t.Up = up;
-	t.Position = pos;
-	// setup camera to world matrix
-	t.Local2World[0] = {right.X, up.X, forward.X, pos.X};
-	t.Local2World[1] = {right.Y, up.Y, forward.Y, pos.Y};
-	t.Local2World[2] = {right.Z, up.Z, forward.Z, pos.Z};
-	t.Local2World[3] = {0, 0, 0, 1};
-
+	t.Local2World = t.Local2World * scaleMatrix;
 	t.World2Local = t.Local2World.Inverse();
 }
 
@@ -203,7 +169,8 @@ inline void InitTransform(Transform& t, const Vec3d& pos, const Vec3d& rotation 
 	t.Local2World[1] = {0, 1, 0, 0};
 	t.Local2World[2] = {0, 0, 1, 0};
 	t.Local2World[3] = {0, 0, 0, 1};
-	RotateTransform(t, rotation);
+	t.Rotation = Euler2Quat(rotation);
+	Quat2Matrix(t.Rotation, t.Local2World);
 	ScalingTransform(t, scaling);
 	MoveTransform(t, pos);
 }
