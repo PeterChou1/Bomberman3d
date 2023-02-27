@@ -184,7 +184,7 @@
     <ClInclude Include="src\Systems\Mouse\MouseSystem.h" />
     <ClInclude Include="src\Systems\Physics\PhysicsWorld.h" />
     <ClInclude Include="src\Components\Display.h" />
-    <ClInclude Include="src\Components\ParticleObj.h" />
+    <ClInclude Include="src\Components\Particle.h" />
     <ClInclude Include="src\Systems\Camera\CameraControl.h" />
     <ClInclude Include="src\Components\Mesh.h" />
     <ClInclude Include="src\Systems\Renderer\Renderer.h" />

@@ -11,7 +11,7 @@ struct Camera
 	double AngleH;
 	double AngleV;
 	// where the camera is pointing
-	Vec3d target;
+	Vec3d Target;
 
 	Vec3d Up;
 	// OpenGL perspective matrix
@@ -82,8 +82,6 @@ inline void SetCameraTransform(Transform& t, const Vec3d& pos, const Vec3d& top,
 	t.World2Local = t.Local2World.Inverse();
 }
 
-
-
 inline void InitCamera(Camera& cam, const double angleY, const double nearPlane, const double farPlane, const double aspectRatio)
 {
 	double right, left, bottom, top;
@@ -97,9 +95,11 @@ inline void InitCamera(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d&
 	// Find Angle of Target Vector on X, Z plane
 	Vec3d targetNorm = Norm(target);
 	Vec3d htarget = { targetNorm.X, 0, targetNorm.Z};
-	double angle = asin(htarget.Z);
-	// map angle to 4 quadrants 0 -> 2 pi radians 
-	if (htarget.Z >= 0)
+	Normalize(htarget);
+	// Get Angle between htarget and view
+	// split into 4 quadrants
+	float angle = acos(targetNorm.X);
+	if (htarget.Z >= 0.0f)
 	{
 		cam.AngleH = htarget.X >= 0.0 ? 2 * PI - angle : PI + angle;
 	}
@@ -108,9 +108,45 @@ inline void InitCamera(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d&
 		cam.AngleH = htarget.X >= 0.0 ? angle : PI - angle;
 	}
 	cam.AngleV = -asin(targetNorm.Y);
-	
+	cam.Target = targetNorm;
+	cam.Up = up;
 	SetCameraTransform(t, pos, up, target);
 	double right, left, bottom, top;
 	GetPerspective(angleY, aspectRatio, nearPlane, right, left, bottom, top);
 	SetFrustum(cam, nearPlane, farPlane, right, left, bottom, top);
+}
+
+/**
+ * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot
+ */
+inline void RotateCameraTransform(Transform& t, Camera& cam, const Vec3d& pos, const double deltaX, const double deltaY, const double deltaUp)
+{
+	Vec3d moveUp = { 0, deltaUp, 0 };
+	// rotate
+	cam.AngleH += deltaX;
+	cam.AngleV += deltaY;
+	Vec3d Yaxis = { 0, 1, 0 };
+	Vec3d target = { 1, 0, 0 };
+	target = RotateVector(target, cam.AngleH, Yaxis);
+	Normalize(target);
+	Vec3d u = Cross(Yaxis, target);
+	Normalize(u);
+	target = RotateVector(target, cam.AngleV, u);
+	Normalize(target);
+	Vec3d up = Cross(target, u);
+	Normalize(up);
+	SetCameraTransform(t, t.Position + moveUp, up, target);
+	cam.Up = up;
+	cam.Target = target;
+
+	Mat4X4 moveMatrix{};
+	moveMatrix[0] = { 1, 0, 0, pos.X };
+	moveMatrix[1] = { 0, 1, 0, pos.Y };
+	moveMatrix[2] = { 0, 0, 1, pos.Z };
+	moveMatrix[3] = { 0, 0, 0, 1 };
+
+	t.Local2World = t.Local2World * moveMatrix;
+	t.World2Local = t.Local2World.Inverse();
+	t.Position = { t.Local2World[0][3], t.Local2World[1][3], t.Local2World[2][3] };
+
 }

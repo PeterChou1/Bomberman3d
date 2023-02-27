@@ -7,7 +7,7 @@
 void CameraControl::Update(float deltaTime)
 {
 	Vec3d direction = {};
-
+	double deltaVertical = 0;
 	if (App::GetController().GetLeftThumbStickX() > 0.5f)
 	{
 		direction.X = 0.1;
@@ -26,10 +26,18 @@ void CameraControl::Update(float deltaTime)
 	{
 		direction.Z = -0.1;
 	}
-	float mouseX, mouseY;
-	App::GetMouseAxis(mouseX, mouseY);
-	Vec3d curRot = Quat2Euler(CamTransform->Rotation);
-	//const Vec3d rotation = { mouseY, -mouseX, 0};
-	const Vec3d rotation = { 0, 0, 0 };
-	MoveRotateTransform(*CamTransform, direction, rotation * deltaTime);
+
+	if (App::IsKeyPressed('Q'))
+	{
+		// move down
+		deltaVertical = -0.1;
+	}
+
+	if (App::IsKeyPressed('E'))
+	{
+		// move up
+		deltaVertical = 0.1;
+	}
+
+	RotateCameraTransform(*CamTransform, *Cam, direction, Mouse->DeltaX, Mouse->DeltaY, deltaVertical);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "Components/Camera.h"
+#include "Components/Mouse.h"
 #include "Systems/System.h"
 
 /**
@@ -12,10 +13,11 @@ public:
 	CameraControl(Scene& scene) : System(scene) {}
 
 
-	void Init(Camera* c, Transform* t)
+	void Init(Camera* c, Transform* t, Mouse* m)
 	{
 		Cam = c;
 		CamTransform = t;
+		Mouse = m;
 	}
 
 	void Update(float deltaTime) override;
@@ -24,5 +26,6 @@ public:
 private:
 	Camera* Cam{nullptr};
 	Transform* CamTransform{nullptr};
+	Mouse* Mouse{ nullptr };
 };
 

@@ -23,6 +23,10 @@ struct Vec3d
 	}
 };
 
+inline float Angle(const Vec3d& a, const Vec3d& b)
+{
+	
+}
 
 inline Vec3d Cross(const Vec3d& a, const Vec3d& b)
 {

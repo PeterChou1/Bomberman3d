@@ -2,12 +2,12 @@
 #include "PhysicsWorld.h"
 
 #include "Components/Mesh.h"
-#include "Components/ParticleObj.h"
+#include "Components/Particle.h"
 #include "Components/RigidBody.h"
 #include "Components/Transform.h"
 
 
-//void ComputeForces(Scene& scene, ParticleObj& particle, const Transform& particleTransform)
+//void ComputeForces(Scene& scene, Particle& particle, const Transform& particleTransform)
 //{
 //	// TODO: predefined constants (move it globally?)
 //	const Vec3d gravity = {0, -9.81, 0};
@@ -21,7 +21,7 @@
 //
 //	if (particle.SpringMass)
 //	{
-//		const auto partnerParticle = scene.Get<ParticleObj>(particle.Partner);
+//		const auto partnerParticle = scene.Get<Particle>(particle.Partner);
 //		const auto partnerTransform = scene.Get<Transform>(particle.Partner);
 //		const auto posDelta = particleTransform.Position - partnerTransform->Position;
 //		const Vec3d vDelta = particle.Velocity - partnerParticle->Velocity;
@@ -35,13 +35,13 @@
 //
 //void PhysicsWorld::Update(const float deltaTime)
 //{
-//	int componentIds[] = {GetId<Transform>(), GetId<Mesh>(), GetId<ParticleObj>()};
+//	int componentIds[] = {GetId<Transform>(), GetId<Mesh>(), GetId<Particle>()};
 //	const auto sceneIterator = SceneIterator(SystemScene, componentIds, 3);
 //
 //	for (const EntityId entity : sceneIterator)
 //	{
 //		const auto t = SystemScene.Get<Transform>(entity);
-//		const auto phys = SystemScene.Get<ParticleObj>(entity);
+//		const auto phys = SystemScene.Get<Particle>(entity);
 //		ComputeForces(SystemScene, *phys, *t);
 //		// Time step using Euler method (can be improved)
 //		phys->Velocity = phys->Velocity + phys->Force / phys->Mass * deltaTime;

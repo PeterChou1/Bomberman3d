@@ -21,21 +21,6 @@ struct Transform
 	Mat4X4 World2Local;
 };
 
-inline Vec3d Local2World(const Transform& t, const Vec3d& a)
-{
-	Vec3d world;
-	world = RotateVector(t.Rotation, a);
-	world = t.Position + world;
-	return world;
-}
-
-inline Vec3d World2Local(const Transform& t, const Vec3d& a)
-{
-	Vec3d local;
-	local = a - t.Position;
-	local = RotateVector(Conjugate(t.Rotation), local);
-	return local;
-}
 
 inline Mat3X3 GetRotationMatrix(const Transform& t)
 {
@@ -79,32 +64,6 @@ inline void GetEulerAngles(Mat4X4& rotation, Vec3d& eulerAngles)
 
 
 /**
- * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot
- */
-inline void MoveRotateTransform(Transform& t, const Vec3d& pos = { 0, 0, 0 }, const Vec3d& rot = {0, 0, 0})
-{
-	Vec3d curRot = Quat2Euler(t.Rotation);
-	Vec3d newRot = { rot.X, rot.Y, -curRot.X };
-	Quat q = Euler2Quat(newRot);
-	Mat4X4 rotation{};
-	t.Rotation = t.Rotation * q;
-	Normalize(t.Rotation);
-
-
-	Quat2Matrix(t.Rotation, rotation);
-
-	t.Position = t.Position + pos;
-	Mat4X4 moveMatrix{};
-	moveMatrix[0] = { 1, 0, 0, t.Position.X };
-	moveMatrix[1] = { 0, 1, 0, t.Position.Y };
-	moveMatrix[2] = { 0, 0, 1, t.Position.Z };
-	moveMatrix[3] = { 0, 0, 0, 1 };
-
-	t.Local2World = moveMatrix * rotation;
-	t.World2Local = t.Local2World.Inverse();
-}
-
-/**
  * \brief Move Transform t to a new position by adding Vec3d pos 
  */
 inline void MoveTransform(Transform& t, const Vec3d& pos)
@@ -114,7 +73,6 @@ inline void MoveTransform(Transform& t, const Vec3d& pos)
 	moveMatrix[1] = {0, 1, 0, pos.Y};
 	moveMatrix[2] = {0, 0, 1, pos.Z};
 	moveMatrix[3] = {0, 0, 0, 1};
-
 	t.Position = t.Position + pos;
 	t.Local2World = t.Local2World * moveMatrix;
 	t.World2Local = t.Local2World.Inverse();

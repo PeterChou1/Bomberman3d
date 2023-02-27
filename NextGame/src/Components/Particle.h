@@ -5,7 +5,7 @@
 /**
  * \brief Represents a particle in the physics system
  */
-struct ParticleObj
+struct Particle
 {
 	Vec3d Velocity;
 	Vec3d Force;

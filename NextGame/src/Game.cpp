@@ -12,7 +12,7 @@
 #include "Components/Mesh.h"
 #include "Components/Mouse.h"
 #include "Components/Mouse.h"
-#include "Components/ParticleObj.h"
+#include "Components/Particle.h"
 #include "Components/RigidBody.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
@@ -33,17 +33,17 @@ MouseSystem mouseSystem = MouseSystem(scene);
 Transform* transform;
 Transform* cameraTransform;
 Mouse* _mouse;
+Camera* _cam;
 //------------------------------------------------------------------------
 // Called before first update. Do any initial setup here.
 //------------------------------------------------------------------------
 void Init()
 {
 	// ----- parameters ------
-	constexpr Vec3d lookAt = {0, 0, 0};
-	constexpr Vec3d up = {0, 1, 0};
-	constexpr Vec3d camPos = {0, 15, 15};
-	Vec3d target = lookAt - camPos;
-	Normalize(target);
+	constexpr Vec3d lookAt = { 0, 0, 0 };
+	constexpr Vec3d up = { 0, 1, 0};
+	constexpr Vec3d camPos = {12.779350, 16.584910, 9.863140};
+	//Normalize(target);
 
 	constexpr double fovAngle = 90;
 	constexpr double nearPlane = 0.1;
@@ -56,14 +56,14 @@ void Init()
 	// ----- Init entities + components ------
 	const EntityId mouseId = scene.NewEntity();
 	const auto mouse = scene.AddComponent<Mouse>(mouseId);
-	InitMouse(*mouse);
+	InitMouse(*mouse, 0.07);
 
 	const EntityId camId = scene.NewEntity();
 	const auto camTransform = scene.AddComponent<Transform>(camId);
 	const auto cam = scene.AddComponent<Camera>(camId);
 	//InitTransform(*camTransform, camPos);
 	//InitCamera(*cam, fovAngle, nearPlane, farPlane, aspectRatio);
-	InitCamera(*cam, *camTransform, camPos, up, target, fovAngle, nearPlane, farPlane, aspectRatio);
+	InitCamera(*cam, *camTransform, camPos, up, camPos - lookAt, fovAngle, nearPlane, farPlane, aspectRatio);
 
 	const EntityId displayId = scene.NewEntity();
 	const auto display = scene.AddComponent<Display>(displayId);
@@ -71,26 +71,17 @@ void Init()
 	display->AspectRatio = aspectRatio;
 	display->Resolution = resolution;
 
-	// const EntityId cubeId = scene.NewEntity();
-	// const auto cubeMesh = scene.AddComponent<Mesh>(cubeId);
-	// cubeTransform = scene.AddComponent<Transform>(cubeId);
-	// const auto rigidBody = scene.AddComponent<RigidBody>(cubeId);
-	// InitTransform(*cubeTransform, {0, 5, 0});
-	// LoadFromObjectFile("./TestData/unitcube.obj", *cubeMesh);
-	// SetUpRigidBody(*rigidBody, *cubeTransform);
-
-
 	const EntityId meshId = scene.NewEntity();
 	const auto mesh = scene.AddComponent<Mesh>(meshId);
 	const auto meshTransform = scene.AddComponent<Transform>(meshId);
 	InitTransform(*meshTransform, { 0, 5, 0 });
-	LoadFromObjectFile("./TestData/ship.obj", *mesh);
-
+	LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
 
 	// TODO: debug remove
 	transform = meshTransform;
 	cameraTransform = camTransform;
 	_mouse = mouse;
+	_cam = cam;
 
 	const EntityId floorId = scene.NewEntity();
 	const auto floorTransform = scene.AddComponent<Transform>(floorId);
@@ -99,7 +90,7 @@ void Init()
 	InitTransform(*floorTransform, { 0, 0, 0 });
 
 	// ----- Init systems ------
-	camControl.Init(cam, camTransform);
+	camControl.Init(cam, camTransform, mouse);
 	renderer.Init(display, cam, camTransform);
 	mouseSystem.Init(mouse);
 }
@@ -127,27 +118,20 @@ void Update(float deltaTime)
 void Render()
 {
 	renderer.Render();
-
-	char str1[180];
 	char str2[180];
 	char str3[180];
 	char str4[180];
-	char str5[180];
 	char str6[180];
 	//sprintf(str1, "(%f, %f, %f) (%f)\n", transform->Local2World[0][0], transform->Local2World[0][1], transform->Local2World[0][2], transform->Local2World[0][3]);
 	//App::Print(100, 150, str1);
-	//sprintf(str2, "(%f, %f, %f) (%f)\n", transform->Local2World[1][0], transform->Local2World[1][1], transform->Local2World[1][2], transform->Local2World[1][3]);
-	//App::Print(100, 100, str2);
-	//sprintf(str3, "(%f, %f, %f) (%f)\n", transform->Local2World[2][0], transform->Local2World[2][1], transform->Local2World[2][2], transform->Local2World[2][3]);
-	//App::Print(100, 50, str3);
-	Vec3d r = Quat2Euler(cameraTransform->Rotation);
-
-	sprintf(str4, "Euler Angles (X: %f, Y: %f, Z: %f) rotation[2][0] (%f)", r.X * 180 / PI,  r.Y * 180 / PI, r.Z * 180 / PI, cameraTransform->Local2World[2][0]);
-	App::Print(100, 200, str4);
-	float MouseX, MouseY;
-	App::GetMouseAxis(MouseX, MouseY);
-	sprintf(str5, "Mouse: (%f %f) Delta (%f %f)", _mouse->MouseX, _mouse->MouseY, _mouse->DeltaX, _mouse->DeltaY);
-	App::Print(100, 150, str5);
+	sprintf(str2, "Up: (%f, %f, %f)", _cam->Up.X, _cam->Up.Y, _cam->Up.Z);
+	App::Print(100, 50, str2);
+	sprintf(str3, "Target: (%f, %f, %f)", _cam->Target.X, _cam->Target.Y, _cam->Target.Z);
+	App::Print(100, 100, str3);
+	sprintf(str4, "Cam Pos: (%f, %f, %f)", cameraTransform->Position.X, cameraTransform->Position.Y, cameraTransform->Position.Z);
+	App::Print(100, 150, str4);
+	//sprintf(str6, "Cam Angles Horizontal: %f Vertical: %f", _cam->AngleH * 180 / PI, _cam->AngleV * 180 / PI);
+	//App::Print(100, 200, str6);
 }
 
 //------------------------------------------------------------------------

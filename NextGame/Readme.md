@@ -146,3 +146,47 @@ void TestRotation()
 	Vec3d eulerAngles{};
 	GetEulerAngles(test, eulerAngles);
 }
+
+	void GetMouseAxis(float& mouseX, float& mouseY)
+	{
+		float x, y;
+		GetMousePos(x, y);
+		// normalize it map it to (-1, 1)
+		if (abs(x - APP_VIRTUAL_WIDTH/2) < DEADZONE_WIDTH)
+		{
+			mouseX = 0;
+		}
+		else
+		{
+			mouseX = x / APP_VIRTUAL_WIDTH * 2 - 1;
+		}
+
+		if (abs(y - APP_VIRTUAL_HEIGHT/2) < DEADZONE_WIDTH)
+		{
+			mouseY = 0;
+		}
+		else
+		{
+			mouseY = y / APP_VIRTUAL_HEIGHT * 2 - 1;
+		}
+		// clamp Mouse X, Y
+		mouseY = mouseY > 1 ? 1 : mouseY;
+		mouseY = mouseY < -1 ? -1 : mouseY;
+		mouseX = mouseX > 1 ? 1 : mouseX;
+		mouseX = mouseX < -1 ? -1 : mouseX;
+	}
+
+
+		/*
+	 * Maps mouse position X, Y to (-1, 1) with a dead zone in the middle
+	 * which cause the x, y to be mapped to zero
+	 * (-1, 1) ------------------ (1, 1)
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 * (-1,-1) ------------------ (1,-1)
+	 */
+	void GetMouseAxis(float& mouseX, float& mouseY);

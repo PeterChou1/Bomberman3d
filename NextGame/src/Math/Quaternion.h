@@ -83,6 +83,7 @@ inline void Matrix2Quat(const Mat4X4& m, Quat& q) {
     }
 }
 
+
 inline Quat Euler2Quat(const Vec3d& r)
 {
 	Quat q{};
@@ -144,5 +145,15 @@ inline Vec3d RotateVector(const Quat& q, const Vec3d& v) {
     Quat result = q * p * Conjugate(q);
     // Return the vector part of the result quaternion
     return result.v;
+}
+
+/**
+ * \brief Rotate vec3d a around axis by angle
+ */
+inline Vec3d RotateVector(const Vec3d& a, double angle, const Vec3d& axis) {
+    Vec3d vec = sin(angle / 2) * axis;
+    Quat q = {cos(angle / 2), vec};
+    //assert(Mag(q) == 1);
+    return RotateVector(q, a);
 }
 
