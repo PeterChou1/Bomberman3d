@@ -14,7 +14,6 @@
 bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Display& display)
 {
 	const Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
-	//const Vec3d proj = sceneCam.Perspective * World2Local(camTransform, a);
 
 	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
 		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
