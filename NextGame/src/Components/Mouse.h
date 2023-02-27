@@ -9,12 +9,17 @@ struct Mouse
 	float DeltaX;
 	float DeltaY;
 	float Sensitivity;
+	// preconfigure delta for if the mouse is on the edge of the screen
+	float ScreenX;
+	float ScreenY;
 };
 
 
-inline void InitMouse(Mouse& mouse, float Sensitivity)
+inline void InitMouse(Mouse& mouse, const float sensitivity, const float screenX, const float screenY)
 {
 	App::GetMousePos(mouse.MouseX, mouse.MouseY);
 	mouse.DeltaY = mouse.DeltaX = 0;
-	mouse.Sensitivity = Sensitivity;
+	mouse.Sensitivity = sensitivity;
+	mouse.ScreenX = screenX;
+	mouse.ScreenY = screenY;
 }

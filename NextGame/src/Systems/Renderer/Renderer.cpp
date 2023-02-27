@@ -2,11 +2,9 @@
 #define NOMINMAX
 
 #include "Renderer.h"
-
 #include "app/app.h"
 #include "Components/Display.h"
 #include "Components/Mesh.h"
-#include "App/main.h"
 
 
 /**
@@ -22,8 +20,8 @@ bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const T
 		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
 		return false;
 
-	coords.X = std::min(static_cast<double>(WINDOW_WIDTH - 1), (proj.X + display.AspectRatio) * 0.5 * WINDOW_WIDTH);
-	coords.Y = std::min(static_cast<double>(WINDOW_HEIGHT - 1), (proj.Y + 1) * 0.5 * WINDOW_HEIGHT);
+	coords.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), (proj.X + display.AspectRatio) * 0.5 * APP_VIRTUAL_WIDTH);
+	coords.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), (proj.Y + 1) * 0.5 * APP_VIRTUAL_HEIGHT);
 	coords.Z = proj.Z;
 
 	return true;
@@ -43,19 +41,13 @@ void Renderer::Render()
 		const Mesh* mesh = SystemScene.Get<Mesh>(entity);
 		const Transform* meshTransform = SystemScene.Get<Transform>(entity);
 
-
 		for (const auto& triangle : mesh->Triangles)
 		{
 			// Hidden surface algorithm
 			// STEP 1: check if normal is facing away from the camera
-
-			// TODO: move this to mesh initialization so we don't have to calculate this every time
 			Vec3d p0 = meshTransform->Local2World * triangle.P[0],
 			      p1 = meshTransform->Local2World * triangle.P[1],
 			      p2 = meshTransform->Local2World * triangle.P[2];
-			//Vec3d p0 = Local2World(*meshTransform, triangle.P[0]),
-			//	  p1 = Local2World(*meshTransform, triangle.P[1]),
-			//	  p2 = Local2World(*meshTransform, triangle.P[2]);
 
 			Vec3d normal = Cross(p0 - p1, p0 - p2);
 			Vec3d lookAt = p0 - CamTransform->Position;
@@ -72,14 +64,14 @@ void Renderer::Render()
 
 
 			// Minor optimization only draw around the bounding box of the triangle
-			Vec3d bbMin = {static_cast<double>(WINDOW_WIDTH), static_cast<double>(WINDOW_HEIGHT), 0};
+			Vec3d bbMin = {static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0};
 			Vec3d bbMax = {0, 0, 0};
 			for (const auto& vertex : {t1, t2, t3})
 			{
 				bbMin.X = std::max(0.0, std::min(bbMin.X, vertex.X));
 				bbMin.Y = std::max(0.0, std::min(bbMin.Y, vertex.Y));
-				bbMax.X = std::min(static_cast<double>(WINDOW_WIDTH - 1), std::max(bbMax.X, vertex.X));
-				bbMax.Y = std::min(static_cast<double>(WINDOW_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
+				bbMax.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), std::max(bbMax.X, vertex.X));
+				bbMax.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
 			}
 			const int minX = static_cast<int>(bbMin.X);
 			const int minY = static_cast<int>(bbMin.Y);
@@ -101,10 +93,10 @@ void Renderer::Render()
 					const auto v = static_cast<float>(((t3.Y - t1.Y) * (x - t3.X) + (t1.X - t3.X) * (y - t3.Y)) / det);
 					const float w = 1 - u - v;
 					if (u < 0 || v < 0 || u + v > 1) continue;
-					const double zindex = w * t1.Z + v * t2.Z + u * t3.Z;
-					if (zindex < Display->Zbuffer[x + y * WINDOW_WIDTH])
+					const double zindex = u * t1.Z + v * t2.Z + w * t3.Z;
+					if (zindex < Display->Zbuffer[x + y * APP_VIRTUAL_WIDTH])
 					{
-						Display->Zbuffer[x + y * WINDOW_WIDTH] = zindex;
+						Display->Zbuffer[x + y * APP_VIRTUAL_WIDTH] = zindex;
 						App::DrawPoint(static_cast<float>(x), static_cast<float>(y), u, v, w);
 					}
 				}

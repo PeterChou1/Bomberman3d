@@ -39,5 +39,15 @@ void CameraControl::Update(float deltaTime)
 		deltaVertical = 0.1;
 	}
 
-	RotateCameraTransform(*CamTransform, *Cam, direction, Mouse->DeltaX, Mouse->DeltaY, deltaVertical);
+	double deltaX = Mouse->DeltaX;
+	double deltaY = Mouse->DeltaY;
+	bool left, right, up, down;
+	App::GetMouseBoundary(left, right, up, down);
+
+	if (left) deltaX = Mouse->ScreenX;
+	if (right) deltaX = -Mouse->ScreenX;
+	if (up) deltaY = Mouse->ScreenY;
+	if (down) deltaY = -Mouse->ScreenY;
+
+	RotateCameraTransform(*CamTransform, *Cam, direction, deltaX, deltaY, deltaVertical);
 }

@@ -128,6 +128,30 @@ void Display()
 //---------------------------------------------------------------------------------
 void Idle()
 {
+	float x, y;
+	App::GetMousePos(x, y);
+	// keep mouse lock in 
+	if (x > APP_VIRTUAL_WIDTH)
+	{
+		glutWarpPointer(APP_VIRTUAL_WIDTH, APP_VIRTUAL_HEIGHT - y);
+	
+	}
+	
+	if (x < 0)
+	{
+		glutWarpPointer(0, APP_VIRTUAL_HEIGHT - y);
+	}
+	
+	if (y > APP_VIRTUAL_HEIGHT)
+	{
+		glutWarpPointer(x, 0);
+	}
+	
+	if (y < 0)
+	{
+		glutWarpPointer(x, APP_VIRTUAL_HEIGHT);
+	}
+
 	// stick mouse in the middle of the screen
 	static double prevTime = GetCounter();
 	double tick = GetCounter() - prevTime;
@@ -136,25 +160,6 @@ void Idle()
 	// Update.
 	if (deltaTime > (UPDATE_MAX))
 	{
-		float x, y;
-		App::GetMousePos(x, y);
-		// keep mouse lock in 
-		if (x > APP_VIRTUAL_WIDTH)
-		{
-			glutWarpPointer(APP_VIRTUAL_WIDTH, y);
-		} else if (x < 0)
-		{
-			glutWarpPointer(0, y);
-		}
-		if (y > APP_VIRTUAL_HEIGHT)
-		{
-			glutWarpPointer(x, APP_VIRTUAL_HEIGHT);
-		}
-		else if (y < 0)
-		{
-			glutWarpPointer(x, 0);
-		}
-
 		gUpdateDeltaTime.Stop();
 		glutPostRedisplay(); //everytime you are done 
 		CSimpleControllers::GetInstance().Update();

@@ -4,7 +4,7 @@
 #ifndef _APP_H
 #define _APP_H
 //---------------------------------------------------------------------------------
-#include <windows.h> 
+#include <windows.h>
 //---------------------------------------------------------------------------------
 #include "../glut/include/GL/freeglut.h"
 #include "AppSettings.h"
@@ -38,7 +38,7 @@ namespace App
 	//-------------------------------------------------------------------------------------------
 	// Draw a 2D Line from sx,sy to ex, ey using color r = red, g = green, b=blue.
 	//-------------------------------------------------------------------------------------------
-	void DrawLine( float sx, float sy, float ex, float ey, float r = 1.0f, float g = 1.0f, float b = 1.0f );
+	void DrawLine(float sx, float sy, float ex, float ey, float r = 1.0f, float g = 1.0f, float b = 1.0f);
 
 	//-------------------------------------------------------------------------------------------
 	// void Print(float x, float y, const char *text, float r = 1.0f, float g = 1.0f, float b = 1.0f, void *font = GLUT_BITMAP_HELVETICA_18);
@@ -49,7 +49,8 @@ namespace App
 	// GLUT_BITMAP_9_BY_15, GLUT_BITMAP_8_BY_13, GLUT_BITMAP_TIMES_ROMAN_10, GLUT_BITMAP_TIMES_ROMAN_24
 	// GLUT_BITMAP_HELVETICA_10, GLUT_BITMAP_HELVETICA_12, GLUT_BITMAP_HELVETICA_18	
 	//-------------------------------------------------------------------------------------------
-	void Print(float x, float y, const char *text, float r = 1.0f, float g = 1.0f, float b = 1.0f, void *font = GLUT_BITMAP_HELVETICA_18);
+	void Print(float x, float y, const char* text, float r = 1.0f, float g = 1.0f, float b = 1.0f,
+	           void* font = GLUT_BITMAP_HELVETICA_18);
 
 	//-------------------------------------------------------------------------------------------
 	// CSimpleSprite *CreateSprite(const char *fileName, int columns, int rows)
@@ -59,8 +60,8 @@ namespace App
 	// frames in the given image.
 	// You can then use the CSimpleSprite methods to animate/move etc.
 	//-------------------------------------------------------------------------------------------
-	CSimpleSprite *CreateSprite(const char *fileName, int columns, int rows);
-		
+	CSimpleSprite* CreateSprite(const char* fileName, int columns, int rows);
+
 	//*******************************************************************************************
 	// Sound handling.	
 	//*******************************************************************************************
@@ -70,22 +71,22 @@ namespace App
 	// Plays the passed .wav file. Set looping to true if you want the sound to loop.
 	// If the sound is already playing it will restart.
 	//-------------------------------------------------------------------------------------------
-	void PlaySound(const char *fileName, bool looping = false);
+	void PlaySound(const char* fileName, bool looping = false);
 
 	//-------------------------------------------------------------------------------------------
 	// void StopSound(const char *fileName);
 	//-------------------------------------------------------------------------------------------	
 	// Stops the given .wav file from playing.
 	//-------------------------------------------------------------------------------------------	
-	void StopSound(const char *fileName);
+	void StopSound(const char* fileName);
 
 	//-------------------------------------------------------------------------------------------
 	// bool IsSoundPlaying(const char *filename);
 	//-------------------------------------------------------------------------------------------	
 	// Returns true if the given .wav file is currently playing.
 	//-------------------------------------------------------------------------------------------	
-	bool IsSoundPlaying(const char *filename);
-	
+	bool IsSoundPlaying(const char* filename);
+
 	//*******************************************************************************************
 	// Input handling.	
 	//*******************************************************************************************
@@ -104,7 +105,14 @@ namespace App
 	//-------------------------------------------------------------------------------------------
 	// Sets the value of the passed in float references to the current position of the mouse pointer.	
 	//-------------------------------------------------------------------------------------------
-	void GetMousePos(float &x, float &y);
+	void GetMousePos(float& x, float& y);
+
+	//-------------------------------------------------------------------------------------------
+	// void GetMouseBoundary(bool& mouseLeft, bool& mouseRight, bool& mouseUp, bool& mouseDown);
+	//-------------------------------------------------------------------------------------------
+	// Get boolean indicating whether or not mouse is on an edge of the screen
+	//-------------------------------------------------------------------------------------------
+	void GetMouseBoundary(bool& mouseLeft, bool& mouseRight, bool& mouseUp, bool& mouseDown);
 
 
 	//-------------------------------------------------------------------------------------------
@@ -118,6 +126,7 @@ namespace App
 	// GetController(0).GetLeftThumbStickX(); Returns a float between -1.0f to 1.0f representing the position of the left thumb sticks X Axis.
 	// See SimpleController.h for more info.
 	//-------------------------------------------------------------------------------------------
-	const CController &GetController( int pad = 0 );
+	const CController& GetController(int pad = 0);
+
 };
 #endif //_APP_H

@@ -40,30 +40,30 @@ Camera* _cam;
 void Init()
 {
 	// ----- parameters ------
-	constexpr Vec3d lookAt = { 0, 0, 0 };
-	constexpr Vec3d up = { 0, 1, 0};
-	constexpr Vec3d camPos = {12.779350, 16.584910, 9.863140};
+	constexpr Vec3d lookAt = { 1, 0, 0 };
+	constexpr Vec3d up = { 0, 1, 0 };
+	constexpr Vec3d camPos = { -7.45, 18.79, -12.35 };
 	//Normalize(target);
 
 	constexpr double fovAngle = 90;
 	constexpr double nearPlane = 0.1;
 	constexpr double farPlane = 100;
-	const double aspectRatio = WINDOW_WIDTH / WINDOW_HEIGHT;
-	const int resolution = WINDOW_HEIGHT * WINDOW_WIDTH;
+	constexpr double aspectRatio = APP_VIRTUAL_WIDTH / APP_VIRTUAL_HEIGHT;
+	constexpr int resolution = APP_VIRTUAL_HEIGHT * APP_VIRTUAL_WIDTH;
 
 	scene = Scene();
 
 	// ----- Init entities + components ------
 	const EntityId mouseId = scene.NewEntity();
 	const auto mouse = scene.AddComponent<Mouse>(mouseId);
-	InitMouse(*mouse, 0.07);
+	InitMouse(*mouse, 0.07, 0.01, -0.01);
 
 	const EntityId camId = scene.NewEntity();
 	const auto camTransform = scene.AddComponent<Transform>(camId);
 	const auto cam = scene.AddComponent<Camera>(camId);
 	//InitTransform(*camTransform, camPos);
 	//InitCamera(*cam, fovAngle, nearPlane, farPlane, aspectRatio);
-	InitCamera(*cam, *camTransform, camPos, up, camPos - lookAt, fovAngle, nearPlane, farPlane, aspectRatio);
+	InitCamera(*cam, *camTransform, camPos, up, lookAt - camPos, fovAngle, nearPlane, farPlane, aspectRatio);
 
 	const EntityId displayId = scene.NewEntity();
 	const auto display = scene.AddComponent<Display>(displayId);
@@ -71,23 +71,27 @@ void Init()
 	display->AspectRatio = aspectRatio;
 	display->Resolution = resolution;
 
-	const EntityId meshId = scene.NewEntity();
-	const auto mesh = scene.AddComponent<Mesh>(meshId);
-	const auto meshTransform = scene.AddComponent<Transform>(meshId);
-	InitTransform(*meshTransform, { 0, 5, 0 });
-	LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
 
-	// TODO: debug remove
-	transform = meshTransform;
-	cameraTransform = camTransform;
-	_mouse = mouse;
-	_cam = cam;
+
 
 	const EntityId floorId = scene.NewEntity();
 	const auto floorTransform = scene.AddComponent<Transform>(floorId);
 	const auto floorMesh = scene.AddComponent<Mesh>(floorId);
 	LoadFromObjectFile("./TestData/cubeflat.obj", *floorMesh);
 	InitTransform(*floorTransform, { 0, 0, 0 });
+
+	const EntityId meshId = scene.NewEntity();
+	const auto mesh = scene.AddComponent<Mesh>(meshId);
+	const auto meshTransform = scene.AddComponent<Transform>(meshId);
+	InitTransform(*meshTransform, { 0, 5, 0 });
+	LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
+
+
+	// TODO: debug remove
+	transform = meshTransform;
+	cameraTransform = camTransform;
+	_mouse = mouse;
+	_cam = cam;
 
 	// ----- Init systems ------
 	camControl.Init(cam, camTransform, mouse);
@@ -130,8 +134,10 @@ void Render()
 	App::Print(100, 100, str3);
 	sprintf(str4, "Cam Pos: (%f, %f, %f)", cameraTransform->Position.X, cameraTransform->Position.Y, cameraTransform->Position.Z);
 	App::Print(100, 150, str4);
-	//sprintf(str6, "Cam Angles Horizontal: %f Vertical: %f", _cam->AngleH * 180 / PI, _cam->AngleV * 180 / PI);
-	//App::Print(100, 200, str6);
+	float x, y;
+	App::GetMousePos(x, y);
+	sprintf(str6, "Mouse Cursor: (x:%f, y:%f)", x, y);
+	App::Print(100, 200, str6);
 }
 
 //------------------------------------------------------------------------
