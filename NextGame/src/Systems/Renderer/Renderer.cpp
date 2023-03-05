@@ -15,14 +15,13 @@ bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const T
 {
 	const Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
 
+	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
+		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
+		return false;
 
 	coords.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), (proj.X + display.AspectRatio) * 0.5 * APP_VIRTUAL_WIDTH);
 	coords.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), (proj.Y + 1) * 0.5 * APP_VIRTUAL_HEIGHT);
 	coords.Z = proj.Z;
-
-	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
-		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
-		return false;
 
 	return true;
 }
@@ -61,42 +60,28 @@ void Renderer::Render()
 			Vec3d t2{};
 			Vec3d t3{};
 
-			bool t1InScreen = ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display);
-			bool t2InScreen = ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display);
-			bool t3InScreen = ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display);
+			bool needToClip = false;
 
-			bool canCull = t1InScreen || t2InScreen || t3InScreen;
-			if (canCull) continue;
+			if (!ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display) ||
+				!ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display) ||
+				!ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display))
+				continue;
 
-			bool onScreen = t1InScreen && t2InScreen && t3InScreen;
-			int minX;
-			int minY;
-			int maxX;
-			int maxY;
 
-			if (onScreen)
+			// Minor optimization only draw around the bounding box of the triangle
+			Vec3d bbMin = {static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0};
+			Vec3d bbMax = {0, 0, 0};
+			for (const auto& vertex : {t1, t2, t3})
 			{
-				// Minor optimization only draw around the bounding box of the triangle
-				Vec3d bbMin = { static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0 };
-				Vec3d bbMax = { 0, 0, 0 };
-				for (const auto& vertex : { t1, t2, t3 })
-				{
-					bbMin.X = std::max(0.0, std::min(bbMin.X, vertex.X));
-					bbMin.Y = std::max(0.0, std::min(bbMin.Y, vertex.Y));
-					bbMax.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), std::max(bbMax.X, vertex.X));
-					bbMax.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
-				}
-				minX = static_cast<int>(bbMin.X);
-				minY = static_cast<int>(bbMin.Y);
-				maxX = static_cast<int>(bbMax.X);
-				maxY = static_cast<int>(bbMax.Y);
+				bbMin.X = std::max(0.0, std::min(bbMin.X, vertex.X));
+				bbMin.Y = std::max(0.0, std::min(bbMin.Y, vertex.Y));
+				bbMax.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), std::max(bbMax.X, vertex.X));
+				bbMax.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
 			}
-			else
-			{
-				minX
-			}
-
-
+			const int minX = static_cast<int>(bbMin.X);
+			const int minY = static_cast<int>(bbMin.Y);
+			const int maxX = static_cast<int>(bbMax.X);
+			const int maxY = static_cast<int>(bbMax.Y);
 
 			std::vector<std::array<float, 2>> points;
 
