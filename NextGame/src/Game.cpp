@@ -8,17 +8,16 @@
 #include "app/app.h"
 #include "ECS/Scene.h"
 #include "Components/Camera.h"
+#include "Components/Collider.h"
 #include "Components/Display.h"
 #include "Components/Mesh.h"
 #include "Components/Mouse.h"
-#include "Components/Mouse.h"
-#include "Components/Particle.h"
-#include "Components/RigidBody.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
 #include "Systems/Camera/CameraControl.h"
 #include "Systems/Mouse/MouseSystem.h"
-#include "Systems/Physics/PhysicsWorld.h"
+#include "Systems/Physics2D/Physics2D.h"
+#include "Systems/Physics3D/Physics3D.h"
 #include "Systems/Renderer/Renderer.h"
 
 int sComponentCounter = 0;
@@ -27,13 +26,75 @@ Scene scene;
 // Systems
 CameraControl camControl = CameraControl(scene);
 Renderer renderer = Renderer(scene);
-PhysicsWorld phys = PhysicsWorld(scene);
+Physics3D phys3D = Physics3D(scene);
+Physics2D phys2D = Physics2D(scene);
 MouseSystem mouseSystem = MouseSystem(scene);
+
+
 // TODO: transform used for debug purposes (REMOVE LATER)
 Transform* transform;
 Transform* cameraTransform;
 Mouse* _mouse;
 Camera* _cam;
+AABB* _aabb;
+
+int sizeX = 30;
+int sizeY = 30;
+
+int blockMap[30][30] = {
+	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},//{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+};
+
+
+void SetupMap()
+{
+	for (int x = 0; x < sizeX; x++)
+	{
+		for (int y = 0; y < sizeY; y++)
+		{
+			if (blockMap[x][y] == 1)
+			{
+				const EntityId meshId = scene.NewEntity();
+				const auto mesh = scene.AddComponent<Mesh>(meshId);
+				const auto meshTransform = scene.AddComponent<Transform>(meshId);
+				const auto meshAABB = scene.AddComponent<AABB>(meshId);
+				InitTransform(*meshTransform, { static_cast<double>(-(sizeX / 2) + x), 0.5, static_cast<double>(-(sizeY / 2) + y) });
+				LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
+				ComputeAABB(*mesh, *meshAABB);
+			}
+		}
+	}
+}
+
 //------------------------------------------------------------------------
 // Called before first update. Do any initial setup here.
 //------------------------------------------------------------------------
@@ -42,7 +103,7 @@ void Init()
 	// ----- parameters ------
 	constexpr Vec3d lookAt = { 1, 0, 0 };
 	constexpr Vec3d up = { 0, 1, 0 };
-	constexpr Vec3d camPos = { -7.45, 18.79, -12.35 };
+	constexpr Vec3d camPos = { 0, 15, 15 };
 	//Normalize(target);
 
 	constexpr double fovAngle = 90;
@@ -71,21 +132,23 @@ void Init()
 	display->AspectRatio = aspectRatio;
 	display->Resolution = resolution;
 
-
-
-
 	const EntityId floorId = scene.NewEntity();
 	const auto floorTransform = scene.AddComponent<Transform>(floorId);
 	const auto floorMesh = scene.AddComponent<Mesh>(floorId);
-	LoadFromObjectFile("./TestData/cubeflat.obj", *floorMesh);
-	InitTransform(*floorTransform, { 0, 0, 0 });
+	InitTransform(*floorTransform, { -0.5, 0, -0.5 }, {0, 0, 0}, {30, 0.5, 30});
+	LoadFromObjectFile("./TestData/unitcube.obj", *floorMesh);
+
+	SetupMap();
 
 	const EntityId meshId = scene.NewEntity();
 	const auto mesh = scene.AddComponent<Mesh>(meshId);
 	const auto meshTransform = scene.AddComponent<Transform>(meshId);
-	InitTransform(*meshTransform, { 0, 5, 0 });
+	const auto meshAABB = scene.AddComponent<AABB>(meshId);
+	InitTransform(*meshTransform, { 0, 0, 0 }, {0, 0, 0}, {1, 3, 1});
 	LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
-
+	ComputeAABB(*mesh, *meshAABB);
+	meshAABB->stationary = false;
+	_aabb = meshAABB;
 
 	// TODO: debug remove
 	transform = meshTransform;
@@ -94,7 +157,7 @@ void Init()
 	_cam = cam;
 
 	// ----- Init systems ------
-	camControl.Init(cam, camTransform, mouse);
+	camControl.Init(cam, meshTransform, mouse);
 	renderer.Init(display, cam, camTransform);
 	mouseSystem.Init(mouse);
 }
@@ -107,12 +170,10 @@ void Update(float deltaTime)
 {
 	// move camera (update loop)
 	const float deltaSecond = deltaTime / 1000;
-
-	// Rotate mesh for testing
-	// RotateTransform(*transform, {0, 0, 0.1});
 	mouseSystem.Update(deltaSecond);
 	camControl.Update(deltaSecond);
-	phys.Update(deltaSecond);
+	phys2D.Update(deltaSecond);
+	phys3D.Update(deltaSecond);
 }
 
 //------------------------------------------------------------------------
@@ -136,7 +197,7 @@ void Render()
 	App::Print(100, 150, str4);
 	float x, y;
 	App::GetMousePos(x, y);
-	sprintf(str6, "Mouse Cursor: (x:%f, y:%f)", x, y);
+	sprintf(str6, "Mesh AABB max: (x:%f, y:%f, z:%f) min: (x:%f, y:%f, z:%f)", _aabb->PMaxT.X, _aabb->PMaxT.Y, _aabb->PMaxT.Z, _aabb->PMinT.X, _aabb->PMinT.Y, _aabb->PMinT.Z);
 	App::Print(100, 200, str6);
 }
 

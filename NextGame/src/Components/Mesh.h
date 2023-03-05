@@ -12,8 +12,16 @@ struct Triangle
 
 struct Mesh
 {
+	bool collided = false;
 	std::vector<Triangle> Triangles; 
 };
+
+
+
+inline void LoadTransformMesh(Mesh& mesh)
+{
+	
+}
 
 /**
  * \brief Load wavefront obj file

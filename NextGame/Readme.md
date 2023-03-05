@@ -190,3 +190,115 @@ void TestRotation()
 	 * (-1,-1) ------------------ (1,-1)
 	 */
 	void GetMouseAxis(float& mouseX, float& mouseY);
+
+	struct WorkInterval
+{
+	EntityId Id;
+	double &Value;
+};
+
+void insertionSort(std::vector<WorkInterval>& vec)
+{
+	for (auto it = vec.begin(); it != vec.end(); it++)
+	{
+		// Searching the upper bound, i.e., first 
+		// element greater than *it from beginning
+		auto const insertion_point =
+			std::upper_bound(vec.begin(), it, *it);
+
+		// Shifting the unsorted part
+		std::rotate(insertion_point, it, it + 1);
+	}
+}
+
+struct GlobalCollider
+{
+	std::vector<WorkInterval*> X;
+	std::vector<WorkInterval*> Y;
+	std::vector<WorkInterval*> Z;
+};
+
+inline bool InsertCollider(EntityId id, const AABB& boundingBox, GlobalCollider& globalCollider)
+{
+	WorkInterval Xmin = { Id, boundingBox.PMin.X };
+	WorkInterval Xmax = { Id, boundingBox.PMax.X };
+	WorkInterval Ymin = { Id, boundingBox.PMin.Y };
+	WorkInterval Ymax = { Id, boundingBox.PMax.Y };
+	WorkInterval Zmin = { Id, boundingBox.PMin.Z };
+	WorkInterval Zmax = { Id, boundingBox.PMax.Z };
+	globalCollider.X.push_back(&Xmin);
+	globalCollider.X.push_back(&Xmax);
+	globalCollider.Y.push_back(&Ymin);
+	globalCollider.Y.push_back(&Ymax);
+	globalCollider.Z.push_back(&Zmin);
+	globalCollider.Z.push_back(&Zmax);
+}
+
+
+	AABB newAABB;
+
+	Vec3d pts[8] = {
+		t.Local2World * Vec3d{aabb.PMin.X, aabb.PMin.Y, aabb.PMin.Z},
+		t.Local2World * Vec3d{aabb.PMin.X, aabb.PMin.Y, aabb.PMax.Z},
+		t.Local2World * Vec3d{aabb.PMin.X, aabb.PMax.Y, aabb.PMin.Z},
+		t.Local2World * Vec3d{aabb.PMin.X, aabb.PMax.Y, aabb.PMax.Z},
+		t.Local2World * Vec3d{aabb.PMax.X, aabb.PMin.Y, aabb.PMin.Z},
+		t.Local2World * Vec3d{aabb.PMax.X, aabb.PMin.Y, aabb.PMax.Z},
+		t.Local2World * Vec3d{aabb.PMax.X, aabb.PMax.Y, aabb.PMin.Z},
+		t.Local2World * Vec3d{aabb.PMax.X, aabb.PMax.Y, aabb.PMax.Z},
+	};
+	for (auto v : pts)
+	{
+		newAABB.PMin.X = std::min(v.X, newAABB.PMin.X);
+		newAABB.PMin.Y = std::min(v.Y, newAABB.PMin.Y);
+		newAABB.PMin.Z = std::min(v.Z, newAABB.PMin.Z);
+		newAABB.PMax.X = std::max(v.X, newAABB.PMin.X);
+		newAABB.PMax.Y = std::max(v.Y, newAABB.PMin.Y);
+		newAABB.PMax.Z = std::max(v.Z, newAABB.PMin.Z);
+	}
+	aabb.PMax = newAABB.PMax;
+	aabb.PMin = newAABB.PMin;
+
+
+	//void ComputeForces(Scene& scene, Particle& particle, const Transform& particleTransform)
+//{
+//	// TODO: predefined constants (move it globally?)
+//	const Vec3d gravity = {0, -9.81, 0};
+//	const double kdrag = 1;
+//	Vec3d forceApplied = {0, 0, 0};
+//
+//	if (particle.Gravity)
+//	{
+//		forceApplied = forceApplied + particle.Mass * gravity + -1 * kdrag * particle.Velocity;
+//	}
+//
+//	if (particle.SpringMass)
+//	{
+//		const auto partnerParticle = scene.Get<Particle>(particle.Partner);
+//		const auto partnerTransform = scene.Get<Transform>(particle.Partner);
+//		const auto posDelta = particleTransform.Position - partnerTransform->Position;
+//		const Vec3d vDelta = particle.Velocity - partnerParticle->Velocity;
+//		const double distance = Mag(posDelta);
+//		const Vec3d springForce = -1 * (particle.SpringConstant * (distance - particle.RestLength) + particle.
+//			DampingConstant * (Dot(vDelta, posDelta) / distance)) * (posDelta / distance);
+//		partnerParticle->Force = partnerParticle->Force + -1 * springForce;
+//	}
+//	particle.Force = particle.Force + forceApplied;
+//}
+//
+//void PhysicsWorld::Update(const float deltaTime)
+//{
+//	int componentIds[] = {GetId<Transform>(), GetId<Mesh>(), GetId<Particle>()};
+//	const auto sceneIterator = SceneIterator(SystemScene, componentIds, 3);
+//
+//	for (const EntityId entity : sceneIterator)
+//	{
+//		const auto t = SystemScene.Get<Transform>(entity);
+//		const auto phys = SystemScene.Get<Particle>(entity);
+//		ComputeForces(SystemScene, *phys, *t);
+//		// Time step using Euler method (can be improved)
+//		phys->Velocity = phys->Velocity + phys->Force / phys->Mass * deltaTime;
+//		MoveTransform(*t, phys->Velocity);
+//		phys->Force = {0, 0, 0};
+//	}
+//}

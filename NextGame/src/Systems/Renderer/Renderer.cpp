@@ -15,13 +15,14 @@ bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const T
 {
 	const Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
 
-	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
-		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
-		return false;
 
 	coords.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), (proj.X + display.AspectRatio) * 0.5 * APP_VIRTUAL_WIDTH);
 	coords.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), (proj.Y + 1) * 0.5 * APP_VIRTUAL_HEIGHT);
 	coords.Z = proj.Z;
+
+	if (proj.X < -display.AspectRatio || proj.X > display.AspectRatio ||
+		proj.Y < -1 || proj.Y > 1 || proj.Z < -1 || proj.Z > 1)
+		return false;
 
 	return true;
 }
@@ -39,6 +40,7 @@ void Renderer::Render()
 	{
 		const Mesh* mesh = SystemScene.Get<Mesh>(entity);
 		const Transform* meshTransform = SystemScene.Get<Transform>(entity);
+		
 
 		for (const auto& triangle : mesh->Triangles)
 		{
@@ -50,32 +52,51 @@ void Renderer::Render()
 
 			Vec3d normal = Cross(p0 - p1, p0 - p2);
 			Vec3d lookAt = p0 - CamTransform->Position;
+
+			// Backface culling cull triangle looking away
 			if (Dot(lookAt, normal) > 0) continue;
 
 			// STEP 2: project screen to screen space cull the triangle if any points on triangle 
 			Vec3d t1{};
 			Vec3d t2{};
 			Vec3d t3{};
-			if (!ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display) ||
-				!ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display) ||
-				!ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display))
-				continue;
 
+			bool t1InScreen = ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display);
+			bool t2InScreen = ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display);
+			bool t3InScreen = ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display);
 
-			// Minor optimization only draw around the bounding box of the triangle
-			Vec3d bbMin = {static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0};
-			Vec3d bbMax = {0, 0, 0};
-			for (const auto& vertex : {t1, t2, t3})
+			bool canCull = t1InScreen || t2InScreen || t3InScreen;
+			if (canCull) continue;
+
+			bool onScreen = t1InScreen && t2InScreen && t3InScreen;
+			int minX;
+			int minY;
+			int maxX;
+			int maxY;
+
+			if (onScreen)
 			{
-				bbMin.X = std::max(0.0, std::min(bbMin.X, vertex.X));
-				bbMin.Y = std::max(0.0, std::min(bbMin.Y, vertex.Y));
-				bbMax.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), std::max(bbMax.X, vertex.X));
-				bbMax.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
+				// Minor optimization only draw around the bounding box of the triangle
+				Vec3d bbMin = { static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0 };
+				Vec3d bbMax = { 0, 0, 0 };
+				for (const auto& vertex : { t1, t2, t3 })
+				{
+					bbMin.X = std::max(0.0, std::min(bbMin.X, vertex.X));
+					bbMin.Y = std::max(0.0, std::min(bbMin.Y, vertex.Y));
+					bbMax.X = std::min(static_cast<double>(APP_VIRTUAL_WIDTH - 1), std::max(bbMax.X, vertex.X));
+					bbMax.Y = std::min(static_cast<double>(APP_VIRTUAL_HEIGHT - 1), std::max(bbMax.Y, vertex.Y));
+				}
+				minX = static_cast<int>(bbMin.X);
+				minY = static_cast<int>(bbMin.Y);
+				maxX = static_cast<int>(bbMax.X);
+				maxY = static_cast<int>(bbMax.Y);
 			}
-			const int minX = static_cast<int>(bbMin.X);
-			const int minY = static_cast<int>(bbMin.Y);
-			const int maxX = static_cast<int>(bbMax.X);
-			const int maxY = static_cast<int>(bbMax.Y);
+			else
+			{
+				minX
+			}
+
+
 
 			std::vector<std::array<float, 2>> points;
 
@@ -96,6 +117,7 @@ void Renderer::Render()
 					if (zindex < Display->Zbuffer[x + y * APP_VIRTUAL_WIDTH])
 					{
 						Display->Zbuffer[x + y * APP_VIRTUAL_WIDTH] = zindex;
+						//App::DrawPoint(static_cast<float>(x), static_cast<float>(y), 1, 0, 0);
 						App::DrawPoint(static_cast<float>(x), static_cast<float>(y), u, v, w);
 					}
 				}

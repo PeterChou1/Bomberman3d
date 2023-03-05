@@ -129,6 +129,6 @@ inline void InitTransform(Transform& t, const Vec3d& pos, const Vec3d& rotation 
 	t.Local2World[3] = {0, 0, 0, 1};
 	t.Rotation = Euler2Quat(rotation);
 	Quat2Matrix(t.Rotation, t.Local2World);
-	ScalingTransform(t, scaling);
 	MoveTransform(t, pos);
+	ScalingTransform(t, scaling);
 }

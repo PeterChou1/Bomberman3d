@@ -5,7 +5,7 @@
 #include <iostream>
 
 constexpr int MAX_COMPONENTS = 32;
-constexpr int MAX_ENTITIES = 100;
+constexpr int MAX_ENTITIES = 1000;
 using EntityId = unsigned long long;
 using EntityIndex = unsigned int;
 using EntityVersion = unsigned int;

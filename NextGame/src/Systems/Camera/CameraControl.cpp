@@ -10,7 +10,7 @@ void CameraControl::Update(float deltaTime)
 	double deltaVertical = 0;
 	if (App::GetController().GetLeftThumbStickX() > 0.5f)
 	{
-		direction.X = 0.1;
+		direction.X =0.1;
 	}
 	if (App::GetController().GetLeftThumbStickX() < -0.5f)
 	{
@@ -30,7 +30,7 @@ void CameraControl::Update(float deltaTime)
 	if (App::IsKeyPressed('Q'))
 	{
 		// move down
-		deltaVertical = -0.1;
+		deltaVertical =  -0.1;
 	}
 
 	if (App::IsKeyPressed('E'))
@@ -39,15 +39,18 @@ void CameraControl::Update(float deltaTime)
 		deltaVertical = 0.1;
 	}
 
-	double deltaX = Mouse->DeltaX;
-	double deltaY = Mouse->DeltaY;
+	//double deltaX = Mouse->DeltaX;
+	//double deltaY = Mouse->DeltaY;
+	double deltaX = 0;
+	double deltaY = 0;
+
 	bool left, right, up, down;
 	App::GetMouseBoundary(left, right, up, down);
-
 	if (left) deltaX = Mouse->ScreenX;
 	if (right) deltaX = -Mouse->ScreenX;
 	if (up) deltaY = Mouse->ScreenY;
 	if (down) deltaY = -Mouse->ScreenY;
 
-	RotateCameraTransform(*CamTransform, *Cam, direction, deltaX, deltaY, deltaVertical);
+	//RotateCameraTransform(*CamTransform, *Cam, direction, deltaX, deltaY, deltaVertical);
+	MoveTransform(*CamTransform, { direction.X, deltaVertical, direction.Z });
 }
