@@ -8,9 +8,15 @@
 void PlayerController::Update(float deltaTime)
 {
 	// --- (Game logic ) ---
+	if (PlayerInfo->GameOver) return;
+
 	if (PlayerInfo->CurrentCooldown > 0)
 	{
 		PlayerInfo->CurrentCooldown -= deltaTime;
+	}
+	if (PlayerInfo->CurrentCooldown == 0)
+	{
+		PlayerInfo->CurrentCooldown = 0;
 	}
 
 	if (App::IsKeyPressed('V') && PlayerInfo->CurrentCooldown <= 0)
@@ -21,9 +27,10 @@ void PlayerController::Update(float deltaTime)
 		const auto meshTransform = SystemScene.AddComponent<Transform>(meshId);
 		const auto meshAABB = SystemScene.AddComponent<AABB>(meshId);
 		SystemScene.AddComponent<Bomb>(meshId);
-		// default explosion is 5 second
 		Vec3d bombPosition = PlayerTransform->Position;
 		bombPosition.Y = 0.5;
+		mesh->color = true;
+		mesh->r = 0.5; mesh->g = 0.5; mesh->b = 0.5;
 		InitTransform(*meshTransform, bombPosition);
 		LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
 		ComputeAABB(*mesh, *meshAABB);

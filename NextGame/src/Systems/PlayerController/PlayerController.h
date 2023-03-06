@@ -3,7 +3,7 @@
 #include "Components/Mouse.h"
 #include "Systems/System.h"
 #include "Components/AABB.h"
-#include "Components/Header.h"
+#include "Components/PlayerInfoObj.h"
 
 /**
  * \brief Controls the Camera System + Player Input

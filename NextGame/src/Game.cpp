@@ -10,10 +10,10 @@
 #include "Components/AABB.h"
 #include "Components/AI.h"
 #include "Components/Display.h"
-#include "Components/Header.h"
 #include "Components/Map.h"
 #include "Components/Mesh.h"
 #include "Components/Mouse.h"
+#include "Components/PlayerInfoObj.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
 #include "Systems/AI/AIController.h"
@@ -35,15 +35,7 @@ Physics3D phys3D = Physics3D(scene);
 Physics2D phys2D = Physics2D(scene);
 MouseSystem mouseSystem = MouseSystem(scene);
 BombManager bombManager = BombManager(scene);
-
-// TODO: transform used for debug purposes (REMOVE LATER)
-Transform* transform;
-Transform* cameraTransform;
-Mouse* _mouse;
-Camera* _cam;
-AABB* _aabb;
-AI* aidir;
-Map* _map;
+PlayerInfoObj* playerInfoObj;
 
 void SetupMap(Map& map)
 {
@@ -71,8 +63,6 @@ void SetupMap(Map& map)
 				const auto agent = scene.AddComponent<AI>(agentId);
 				agent->speed = 2;
 				agentAABB->Stationary = false;
-				aidir = agent;
-				transform = agentTransform;
 				Vec3d agentLocation = { static_cast<double>(-(MAP_HEIGHT / 2) + y), 1.5, static_cast<double>(-(MAP_WIDTH / 2) + x) };
 				InitTransform(*agentTransform, agentLocation, {}, { 1, 3, 1 });
 				LoadFromObjectFile("./TestData/unitcube.obj", *agentMesh);
@@ -121,14 +111,19 @@ void Init()
 	InitTransform(*playerTransform, playerStart, {}, { 1, 3, 1 });
 	LoadFromObjectFile("./TestData/unitcube.obj", *playerMesh);
 	ComputeAABB(*playerMesh, *playerAABB);
+	// ----- game config -----
 	playerAABB->Stationary = false;
+	playerAABB->isPlayer = true;
 	playerInfo->BombCooldown = 5;
 
+	// ----- Camera -----
 	const EntityId camId = scene.NewEntity();
 	const auto camTransform = scene.AddComponent<Transform>(camId);
 	const auto cam = scene.AddComponent<Camera>(camId);
 	AttachCamera(*cam, *camTransform, playerId, camPos, up, lookAt - camPos, fovAngle, nearPlane, farPlane, aspectRatio);
 
+
+	// ----- Display ---
 	const EntityId displayId = scene.NewEntity();
 	const auto display = scene.AddComponent<Display>(displayId);
 	display->Zbuffer = new double[resolution];
@@ -140,20 +135,13 @@ void Init()
 	const auto mapComponent = scene.AddComponent<Map>(mapId);
 	SetupMap(*mapComponent);
 
-	// TODO: debug remove
-	cameraTransform = camTransform;
-	//transform = playerTransform;
-	_mouse = mouse;
-	_cam = cam;
-	_aabb = playerAABB;
-	_map = mapComponent;
-
 	// ----- Init systems ------
 	playerControl.Init(cam, camTransform, playerTransform, mouse, playerInfo);
 	renderer.Init(display, cam, camTransform);
 	mouseSystem.Init(mouse);
 	aiController.Init(mapComponent);
 	bombManager.Init(mapComponent);
+	playerInfoObj = playerInfo;
 }
 
 //-------------------------------------- ----------------------------------
@@ -179,36 +167,35 @@ void Update(float deltaTime)
 void Render()
 {
 	renderer.Render();
-	char str2[180];
-	char str3[180];
-	char str4[180];
-	//sprintf(str1, "(%f, %f, %f) (%f)\n", transform->Local2World[0][0], transform->Local2World[0][1], transform->Local2World[0][2], transform->Local2World[0][3]);
-	//App::Print(100, 150, str1);
-	sprintf(str2, "Up: (%f, %f, %f)", _cam->Up.X, _cam->Up.Y, _cam->Up.Z);
-	App::Print(100, 50, str2);
-	sprintf(str3, "Target: (%f, %f, %f)", _cam->Target.X, _cam->Target.Y, _cam->Target.Z);
-	App::Print(100, 100, str3);
-	//for (int y = 0; y < MAP_HEIGHT; y++)
-	//{
-	//	std::string ss = "Map: ";
-	//	for (int x = 0; x < MAP_WIDTH; x++)
-	//	{
-	//		if (y == aidir->x && x == aidir->y)
-	//		{
-	//			ss += "[X]";
-	//		} else if (_map->BlockMap[y][x] == 1)
-	//		{
-	//			ss += "[1]";
-	//		} else if (_map->BlockMap[y][x] == 0)
-	//		{
-	//			ss += "[0]";
-	//		}
-	//	}
-	//	App::Print(100, 200 + 20 * y, ss.c_str());
-	//}
-	char str6[180];
-	sprintf(str6, "agent direction (x:%d, z:%d)", aidir->x, aidir->y);
-	App::Print(100, 150, str6);
+	int count = 0;
+	int aiCount[] = { GetId<AABB>(), GetId<Mesh>(), GetId<AI>() };
+	const auto aiCountIterator = SceneIterator(scene, aiCount, 3);
+	for (const EntityId entity : aiCountIterator)
+	{
+		count += 1;
+	}
+	// Basic UI Logic
+	if (count == 0)
+	{
+		char YouWin[180];
+		sprintf(YouWin, "You Win", playerInfoObj->CurrentCooldown);
+		App::Print(APP_VIRTUAL_WIDTH / 2, APP_VIRTUAL_HEIGHT / 2, YouWin);
+	}
+	else if (playerInfoObj->GameOver)
+	{
+		char GameOver[180];
+		sprintf(GameOver, "Game Over", playerInfoObj->CurrentCooldown);
+		App::Print(APP_VIRTUAL_WIDTH / 2, APP_VIRTUAL_HEIGHT / 2, GameOver);
+	}
+	else
+	{
+		char BombCooldown[180];
+		sprintf(BombCooldown, "Bomb cool down (%f)", playerInfoObj->CurrentCooldown);
+		App::Print(100, 150, BombCooldown);
+		char AICounter[180];
+		sprintf(AICounter, "AI count (%d)", count);
+		App::Print(100, 200, AICounter);
+	}
 }
 
 //------------------------------------------------------------------------

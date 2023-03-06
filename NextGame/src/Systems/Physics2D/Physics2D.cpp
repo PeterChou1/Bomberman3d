@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Physics2D.h"
 #include "Components/AABB.h"
+#include "Components/PlayerInfoObj.h"
 #include "Components/Transform.h"
 
 struct ContactResponse
@@ -9,7 +10,8 @@ struct ContactResponse
 	double penetration;
 };
 
-bool calculateContact(AABB& abox, AABB bbox, Transform& a, Transform& b, ContactResponse& c) {
+bool calculateContact(AABB& abox, AABB bbox, Transform& a, Transform& b, ContactResponse& c)
+{
 	Vec3d aHalfExtents = (abox.PMax - abox.PMin) / 2.0;
 	Vec3d bHalfExtents = (bbox.PMax - bbox.PMin) / 2.0;
 	Vec3d aCenter = a.Position + (abox.PMax + abox.PMin) / 2.0;
@@ -19,21 +21,24 @@ bool calculateContact(AABB& abox, AABB bbox, Transform& a, Transform& b, Contact
 	double zDiff = abs(centerDiff.Z);
 	double xExtentSum = aHalfExtents.X + bHalfExtents.X;
 	double zExtentSum = aHalfExtents.Z + bHalfExtents.Z;
-	if (xDiff < xExtentSum && zDiff < zExtentSum) {
+	if (xDiff < xExtentSum && zDiff < zExtentSum)
+	{
 		// Calculate penetration depth along x and z axes
 		double xPenetration = xExtentSum - xDiff;
 		double zPenetration = zExtentSum - zDiff;
 		// Select the axis of least penetration
-		if (xPenetration < zPenetration) {
+		if (xPenetration < zPenetration)
+		{
 			// Resolve collision along x axis
 			double sign = centerDiff.X > 0 ? 1 : -1;
-			c.normal = Vec3d{ sign, 0.0, 0.0 };
+			c.normal = Vec3d{sign, 0.0, 0.0};
 			c.penetration = xPenetration;
 		}
-		else {
+		else
+		{
 			// Resolve collision along z axis
 			double sign = centerDiff.Z > 0 ? 1 : -1;
-			c.normal = Vec3d{ 0.0, 0.0, sign };
+			c.normal = Vec3d{0.0, 0.0, sign};
 			c.penetration = zPenetration;
 		}
 		return true;
@@ -46,7 +51,7 @@ void Physics2D::Update(const float deltaTime)
 	using collisionPair = std::pair<EntityId, EntityId>;
 
 	// STEP 1: transform aabb
-	int collisonTransform[] = { GetId<AABB>(), GetId<Transform>() };
+	int collisonTransform[] = {GetId<AABB>(), GetId<Transform>()};
 	const auto collisionObj = SceneIterator(SystemScene, collisonTransform, 2);
 	for (const EntityId cObj : collisionObj)
 	{
@@ -100,23 +105,42 @@ void Physics2D::Update(const float deltaTime)
 			// positional correction
 			if (!abox->Stationary && !bbox->isBombTrigger)
 			{
-			    MoveTransform(*transformA, -1 * c.penetration * c.normal);
+				MoveTransform(*transformA, -1 * c.penetration * c.normal);
 			}
-
-			if (!bbox->Stationary && !abox->isBombTrigger)
+			else if (!bbox->Stationary && !abox->isBombTrigger)
 			{
 				MoveTransform(*transformB, c.penetration * c.normal);
 			}
-			// trigger calculation
-			if (!abox->Stationary && bbox->isBombTrigger)
+			// enemy collison with player
+			if (!abox->Stationary && bbox->isPlayer)
 			{
-				
+				SystemScene.Get<PlayerInfoObj>(pair.second)->GameOver = true;
+				SystemScene.RemoveComponent<Mesh>(pair.first);
+			}
+			else if (!bbox->Stationary && abox->isPlayer)
+			{
+				SystemScene.Get<PlayerInfoObj>(pair.first)->GameOver = true;
+				SystemScene.RemoveComponent<Mesh>(pair.first);
 			}
 
 			// trigger calculation
-			if (!bbox->Stationary && abox->isBombTrigger)
+			if (!abox->Stationary && bbox->isBombTrigger)
 			{
-
+				if (abox->isPlayer)
+				{
+					// trigger game over
+					SystemScene.Get<PlayerInfoObj>(pair.first)->GameOver = true;
+				}
+				SystemScene.RemoveComponent<Mesh>(pair.first);
+			}
+			else if (!bbox->Stationary && abox->isBombTrigger)
+			{
+				if (bbox->isPlayer)
+				{
+					// trigger game over
+					SystemScene.Get<PlayerInfoObj>(pair.second)->GameOver = true;
+				}
+				SystemScene.RemoveComponent<Mesh>(pair.second);
 			}
 		}
 	}

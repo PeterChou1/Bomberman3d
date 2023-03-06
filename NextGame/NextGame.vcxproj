@@ -178,7 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Systems\Bomb\BombManager.h" />
-    <ClInclude Include="src\Components\Header.h" />
+    <ClInclude Include="src\Components\PlayerInfoObj.h" />
     <ClInclude Include="src\Components\Bomb.h" />
     <ClInclude Include="src\Systems\AI\AIController.h" />
     <ClInclude Include="src\Components\AI.h" />
@@ -233,9 +233,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Math\Matrix.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Readme.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
