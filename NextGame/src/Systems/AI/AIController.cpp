@@ -4,8 +4,6 @@
 #include "Components/Transform.h"
 
 
-
-
 bool DirectionBlocking(const Map& map, const std::vector<std::pair<int, int>>& otherEntities,
                        const int excludeIndex, const int agentX, const int agentY, const Vec3d direction,
                        const int probeDirection = 1)
@@ -25,26 +23,6 @@ bool DirectionBlocking(const Map& map, const std::vector<std::pair<int, int>>& o
 			return true;
 		}
 	}
-	//bool blocking = false;
-	//for (int i = 1; i <= probeDirection; i++)
-	//{
-	//	const int checkX = agentX + i * static_cast<int>(direction.X);
-	//	const int checkY = agentY + i * static_cast<int>(direction.Z);
-	//	if (checkX < 0 || checkY < 0 || checkX > MAP_WIDTH || checkY > MAP_HEIGHT)
-	//	{
-	//		return true;
-	//	}
-	//	for (int i = 0; i < otherEntities.size(); i++)
-	//	{
-	//		if (i == excludeIndex) continue;
-	//		auto position = otherEntities[i];
-	//		if (checkX == position.first && checkY == position.second)
-	//		{
-	//			return true;
-	//		}
-	//	}
-	//	blocking = blocking || map.BlockMap[checkX][checkY] == 1;
-	//}
 	return map.BlockMap[checkX][checkY] == 1;
 }
 

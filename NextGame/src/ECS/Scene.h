@@ -128,7 +128,7 @@ struct Scene
 	 * RemoveEntity an entity from the entity list
 	 */
 	template <typename T>
-	void RemoveEntity(const EntityId id)
+	void RemoveComponent(const EntityId id)
 	{
 		// ensures you're not accessing an entity that has been deleted
 		if (Entities[GetEntityIndex(id)].Id != id)

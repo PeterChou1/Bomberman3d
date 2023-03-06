@@ -1,6 +1,7 @@
 #pragma once
 
-struct Player
+struct PlayerInfoObj
 {
-	double BombCooldown;
+	double BombCooldown = 0;
+	double CurrentCooldown = 0;
 };

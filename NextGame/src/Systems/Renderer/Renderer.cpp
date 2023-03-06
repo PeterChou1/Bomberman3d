@@ -11,7 +11,7 @@
  * \brief Takes vector a and outputs coords in screen space of sceneCam
  *        returns false if point is not on screen
  */
-bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Transform* camParentTransform, const Display& display)
+bool ToScreenSpace(const Vec3d a, Vec3d& coords, const Camera& sceneCam, const Transform& camTransform, const Display& display)
 {
 	Vec3d proj = sceneCam.Perspective * camTransform.World2Local * a;
 
@@ -40,7 +40,6 @@ void Renderer::Render()
 	{
 		const Mesh* mesh = SystemScene.Get<Mesh>(entity);
 		const Transform* meshTransform = SystemScene.Get<Transform>(entity);
-		const Transform* camParentTransform = nullptr;
 		Vec3d CamPosition = CamTransform->Position;
 
 		for (const auto& triangle : mesh->Triangles)
@@ -63,20 +62,13 @@ void Renderer::Render()
 			Vec3d t2{};
 			Vec3d t3{};
 
-			//bool t1OnScreen = ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display);
-			//bool t2OnScreen = ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display);
-			//bool t3OnScreen = ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display);
-
-			bool t1OnScreen = ToScreenSpace(p0, t1, *Cam, *CamTransform, camParentTransform, *Display);
-			bool t2OnScreen = ToScreenSpace(p1, t2, *Cam, *CamTransform, camParentTransform, *Display);
-			bool t3OnScreen = ToScreenSpace(p2, t3, *Cam, *CamTransform, camParentTransform, *Display);
+			bool t1OnScreen = ToScreenSpace(p0, t1, *Cam, *CamTransform, *Display);
+			bool t2OnScreen = ToScreenSpace(p1, t2, *Cam, *CamTransform, *Display);
+			bool t3OnScreen = ToScreenSpace(p2, t3, *Cam, *CamTransform, *Display);
 			if (!t1OnScreen || !t2OnScreen || !t3OnScreen) continue;
 
 
 			// Minor optimization only draw around the bounding box of the triangle
-			// Vec3d bbMin = {static_cast<double>(APP_VIRTUAL_WIDTH), static_cast<double>(APP_VIRTUAL_HEIGHT), 0};
-			// Vec3d bbMax = {0, 0, 0};
-
 			Vec3d bbMin = { std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), 0 };
 			Vec3d bbMax = { -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0 };
 			for (const auto& vertex : {t1, t2, t3})
@@ -113,8 +105,14 @@ void Renderer::Render()
 						Display->Zbuffer[x + y * APP_VIRTUAL_WIDTH] = zindex;
 						float finalX = static_cast<float>(x);
 						float finalY = static_cast<float>(y);
-						//App::DrawPoint(static_cast<float>(x), static_cast<float>(y), u, v, w);
-						App::DrawLine(finalX, finalY, finalX + 1, finalY + 1, u, v, w);
+						if (mesh->color)
+						{
+							App::DrawLine(finalX, finalY, finalX + 1, finalY + 1, mesh->r, mesh->g, mesh->b);
+						}
+						else
+						{
+							App::DrawLine(finalX, finalY, finalX + 1, finalY + 1, u, v, w);
+						}
 					}
 				}
 			}

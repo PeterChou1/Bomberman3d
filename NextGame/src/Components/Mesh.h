@@ -12,16 +12,14 @@ struct Triangle
 
 struct Mesh
 {
+	bool color = false;
+	float r;
+	float g;
+	float b;
 	bool collided = false;
 	std::vector<Triangle> Triangles; 
 };
 
-
-
-inline void LoadTransformMesh(Mesh& mesh)
-{
-	
-}
 
 /**
  * \brief Load wavefront obj file

@@ -1,9 +1,7 @@
 #include "stdafx.h"
 #include "Physics2D.h"
 #include "Components/AABB.h"
-#include "Components/Collider2D.h"
 #include "Components/Transform.h"
-
 
 struct ContactResponse
 {
@@ -60,7 +58,8 @@ void Physics2D::Update(const float deltaTime)
 
 	int rigidbody[] = {GetId<Transform>(), GetId<AABB>()};
 	const auto aabbIterator = SceneIterator(SystemScene, rigidbody, 2);
-	std::vector<collisionPair> entityPair;
+	std::vector<collisionPair> collisionEntityPair;
+	std::vector<collisionPair> collisionTriggersPair;
 
 	for (const EntityId A : aabbIterator)
 	{
@@ -70,25 +69,26 @@ void Physics2D::Update(const float deltaTime)
 			const auto abox = SystemScene.Get<AABB>(A);
 			const auto bbox = SystemScene.Get<AABB>(B);
 			if (abox->Stationary && bbox->Stationary) continue;
+
 			if (Overlaps2d(*abox, *bbox))
 			{
-				entityPair.emplace_back(A, B);
+				collisionEntityPair.emplace_back(A, B);
 			}
 		}
 	}
 	// cull the pairVector to remove duplicates
-	std::sort(entityPair.begin(), entityPair.end(),
+	std::sort(collisionEntityPair.begin(), collisionEntityPair.end(),
 	          [](const collisionPair& p1, const collisionPair& p2)
 	          {
 		          if (p1.first != p2.first)
 			          return p1.first < p2.first;
 		          return p1.second < p2.second;
 	          });
-	auto last = std::unique(entityPair.begin(), entityPair.end());
-	entityPair.erase(last, entityPair.end());
+	auto last = std::unique(collisionEntityPair.begin(), collisionEntityPair.end());
+	collisionEntityPair.erase(last, collisionEntityPair.end());
 
 	// calculate the penetration depth + 
-	for (auto pair : entityPair)
+	for (auto pair : collisionEntityPair)
 	{
 		ContactResponse c{};
 		const auto abox = SystemScene.Get<AABB>(pair.first);
@@ -98,14 +98,25 @@ void Physics2D::Update(const float deltaTime)
 		if (calculateContact(*abox, *bbox, *transformA, *transformB, c))
 		{
 			// positional correction
-			if (!abox->Stationary)
+			if (!abox->Stationary && !bbox->isBombTrigger)
 			{
 			    MoveTransform(*transformA, -1 * c.penetration * c.normal);
 			}
 
-			if (!bbox->Stationary)
+			if (!bbox->Stationary && !abox->isBombTrigger)
 			{
 				MoveTransform(*transformB, c.penetration * c.normal);
+			}
+			// trigger calculation
+			if (!abox->Stationary && bbox->isBombTrigger)
+			{
+				
+			}
+
+			// trigger calculation
+			if (!bbox->Stationary && abox->isBombTrigger)
+			{
+
 			}
 		}
 	}

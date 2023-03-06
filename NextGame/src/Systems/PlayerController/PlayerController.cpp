@@ -1,15 +1,42 @@
 #include "stdafx.h"
 #include "app/app.h"
 #include "PlayerController.h"
+
+#include "Components/Bomb.h"
 #include "Components/Mesh.h"
 
 void PlayerController::Update(float deltaTime)
 {
+	// --- (Game logic ) ---
+	if (PlayerInfo->CurrentCooldown > 0)
+	{
+		PlayerInfo->CurrentCooldown -= deltaTime;
+	}
+
+	if (App::IsKeyPressed('V') && PlayerInfo->CurrentCooldown <= 0)
+	{
+		// Construct and drop a bomb
+		const EntityId meshId = SystemScene.NewEntity();
+		const auto mesh = SystemScene.AddComponent<Mesh>(meshId);
+		const auto meshTransform = SystemScene.AddComponent<Transform>(meshId);
+		const auto meshAABB = SystemScene.AddComponent<AABB>(meshId);
+		SystemScene.AddComponent<Bomb>(meshId);
+		// default explosion is 5 second
+		Vec3d bombPosition = PlayerTransform->Position;
+		bombPosition.Y = 0.5;
+		InitTransform(*meshTransform, bombPosition);
+		LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
+		ComputeAABB(*mesh, *meshAABB);
+		PlayerInfo->CurrentCooldown = PlayerInfo->BombCooldown;
+	}
+
+	// --- (Player movement logic) ---
 	const double mouseSensitivity = 0.5;
 	const double speed = 5 * deltaTime;
 	double deltaVertical = 0;
 	double deltaMoveX = 0;
 	double deltaMoveZ = 0;
+
 	if (App::GetController().GetLeftThumbStickX() > 0.5f)
 	{
 		deltaMoveX = speed;
@@ -39,18 +66,6 @@ void PlayerController::Update(float deltaTime)
 	{
 		// move up
 		deltaVertical = speed;
-	}
-
-	if (App::IsKeyPressed('V'))
-	{
-		// drop a bomb
-		const EntityId meshId = SystemScene.NewEntity();
-		const auto mesh = SystemScene.AddComponent<Mesh>(meshId);
-		const auto meshTransform = SystemScene.AddComponent<Transform>(meshId);
-		const auto meshAABB = SystemScene.AddComponent<AABB>(meshId);
-		InitTransform(*meshTransform, PlayerTransform->Position);
-		LoadFromObjectFile("./TestData/unitcube.obj", *mesh);
-		ComputeAABB(*mesh, *meshAABB);
 	}
 
 	double deltaX = mouseSensitivity * Mouse->DeltaX;

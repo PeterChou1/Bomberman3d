@@ -177,14 +177,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Systems\Bomb\BombManager.h" />
     <ClInclude Include="src\Components\Header.h" />
-    <ClInclude Include="src\Components\Timer.h" />
+    <ClInclude Include="src\Components\Bomb.h" />
     <ClInclude Include="src\Systems\AI\AIController.h" />
     <ClInclude Include="src\Components\AI.h" />
     <ClInclude Include="src\Components\Map.h" />
     <ClInclude Include="src\Systems\Physics2D\Physics2D.h" />
     <ClInclude Include="src\Components\AABB.h" />
-    <ClInclude Include="src\Components\Collider2D.h" />
     <ClInclude Include="src\Components\Mouse.h" />
     <ClInclude Include="src\Components\RigidBody.h" />
     <ClInclude Include="src\Math\Quaternion.h" />
@@ -212,6 +212,7 @@
     <ClInclude Include="src\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Systems\Bomb\BombManager.cpp" />
     <ClCompile Include="src\Systems\AI\AIController.cpp" />
     <ClCompile Include="src\Systems\Physics2D\Physics2D.cpp" />
     <ClCompile Include="src\Systems\Mouse\MouseSystem.cpp" />

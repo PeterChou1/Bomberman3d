@@ -13,6 +13,13 @@ struct AABB
 {
 	// whether or not the Axis align bounding box is non moving objects
 	bool Stationary = true;
+	// trigger is for AABB used for bomb trigger detection
+	bool isBombTrigger = false;
+	// how long the bomb w
+	double bombTime = 5;
+	// indicate the Axis Align Box belongs to a player
+	bool isPlayer = false;
+
 	Vec3d PMax{ -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
 	Vec3d PMin{ std::numeric_limits<double>::infinity(),  std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() };
 	Vec3d PMaxT{};

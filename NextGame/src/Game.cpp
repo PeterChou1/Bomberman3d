@@ -10,12 +10,14 @@
 #include "Components/AABB.h"
 #include "Components/AI.h"
 #include "Components/Display.h"
+#include "Components/Header.h"
 #include "Components/Map.h"
 #include "Components/Mesh.h"
 #include "Components/Mouse.h"
 #include "Components/Transform.h"
 #include "Math/Vec3d.h"
 #include "Systems/AI/AIController.h"
+#include "Systems/Bomb/BombManager.h"
 #include "Systems/Mouse/MouseSystem.h"
 #include "Systems/Physics2D/Physics2D.h"
 #include "Systems/Physics3D/Physics3D.h"
@@ -26,13 +28,13 @@ int sComponentCounter = 0;
 // --- scene ---
 Scene scene;
 // Systems
-PlayerController camControl = PlayerController(scene);
+PlayerController playerControl = PlayerController(scene);
 AIController aiController = AIController(scene);
 Renderer renderer = Renderer(scene);
 Physics3D phys3D = Physics3D(scene);
 Physics2D phys2D = Physics2D(scene);
 MouseSystem mouseSystem = MouseSystem(scene);
-
+BombManager bombManager = BombManager(scene);
 
 // TODO: transform used for debug purposes (REMOVE LATER)
 Transform* transform;
@@ -111,13 +113,16 @@ void Init()
 
 	// ----- Player ----
 	const EntityId playerId = scene.NewEntity();
+	const auto playerInfo = scene.AddComponent<PlayerInfoObj>(playerId);
 	const auto playerMesh = scene.AddComponent<Mesh>(playerId);
 	const auto playerTransform = scene.AddComponent<Transform>(playerId);
 	const auto playerAABB = scene.AddComponent<AABB>(playerId);
+
 	InitTransform(*playerTransform, playerStart, {}, { 1, 3, 1 });
 	LoadFromObjectFile("./TestData/unitcube.obj", *playerMesh);
 	ComputeAABB(*playerMesh, *playerAABB);
 	playerAABB->Stationary = false;
+	playerInfo->BombCooldown = 5;
 
 	const EntityId camId = scene.NewEntity();
 	const auto camTransform = scene.AddComponent<Transform>(camId);
@@ -144,10 +149,11 @@ void Init()
 	_map = mapComponent;
 
 	// ----- Init systems ------
-	camControl.Init(cam, camTransform, playerTransform, mouse);
+	playerControl.Init(cam, camTransform, playerTransform, mouse, playerInfo);
 	renderer.Init(display, cam, camTransform);
 	mouseSystem.Init(mouse);
 	aiController.Init(mapComponent);
+	bombManager.Init(mapComponent);
 }
 
 //-------------------------------------- ----------------------------------
@@ -159,10 +165,11 @@ void Update(float deltaTime)
 	// move camera (update loop)
 	const float deltaSecond = deltaTime / 1000;
 	mouseSystem.Update(deltaSecond);
-	camControl.Update(deltaSecond);
+	playerControl.Update(deltaSecond);
 	aiController.Update(deltaSecond);
 	phys2D.Update(deltaSecond);
 	phys3D.Update(deltaSecond);
+	bombManager.Update(deltaSecond);
 }
 
 //------------------------------------------------------------------------
