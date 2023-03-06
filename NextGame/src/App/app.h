@@ -14,22 +14,12 @@
 #define APP_VIRTUAL_TO_NATIVE_COORDS(_x_,_y_)			_x_ = ((_x_ / APP_VIRTUAL_WIDTH )*2.0f) - 1.0f; _y_ = ((_y_ / APP_VIRTUAL_HEIGHT)*2.0f) - 1.0f;
 #define APP_NATIVE_TO_VIRTUAL_COORDS(_x_,_y_)			_x_ = ((_x_ + 1.0f) * APP_VIRTUAL_WIDTH) / 2.0f; _y_ = ((_y_ + 1.0f) * APP_VIRTUAL_HEIGHT) / 2.0f;
 
+
 //---------------------------------------------------------------------------------
 // App namespace: These are the IO calls you can use for you game.
 //---------------------------------------------------------------------------------
 namespace App
 {
-	void DrawPoint(float x, float y, float r, float g, float b);
-	//*******************************************************************************************
-	// Display Calls.
-	//*******************************************************************************************
-	//-------------------------------------------------------------------------------------------
-	// void DrawPoint( float sx, float sy, float r, float g, float b);
-	//-------------------------------------------------------------------------------------------
-	// Draw a 2D Point vector of points color r = red, g = green, b=blue.
-	//-------------------------------------------------------------------------------------------
-	void DrawPoints(std::vector<std::array<float, 2>> pointers, float r, float g, float b);
-
 	//*******************************************************************************************
 	// Display Calls.
 	//*******************************************************************************************
@@ -106,13 +96,6 @@ namespace App
 	// Sets the value of the passed in float references to the current position of the mouse pointer.	
 	//-------------------------------------------------------------------------------------------
 	void GetMousePos(float& x, float& y);
-
-	//-------------------------------------------------------------------------------------------
-	// void GetMouseBoundary(bool& mouseLeft, bool& mouseRight, bool& mouseUp, bool& mouseDown);
-	//-------------------------------------------------------------------------------------------
-	// Get boolean indicating whether or not mouse is on an edge of the screen
-	//-------------------------------------------------------------------------------------------
-	void GetMouseBoundary(bool& mouseLeft, bool& mouseRight, bool& mouseUp, bool& mouseDown);
 
 
 	//-------------------------------------------------------------------------------------------

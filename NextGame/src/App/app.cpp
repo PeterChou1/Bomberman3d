@@ -68,17 +68,6 @@ namespace App
 #endif
 	}
 
-	void GetMouseBoundary(bool& mouseLeft, bool& mouseRight, bool& mouseUp, bool& mouseDown)
-	{
-		float tolerance = 10;
-		float x, y;
-		GetMousePos(x, y);
-		mouseRight = x > APP_VIRTUAL_WIDTH - tolerance ? true : false;
-		mouseLeft = x < 0 + tolerance? true : false;
-		mouseUp = y > APP_VIRTUAL_HEIGHT - tolerance ? true : false;
-		mouseDown = y < 0 + tolerance ? true : false;
-	}
-
 
 	void PlaySound(const char *fileName, bool looping)
 	{

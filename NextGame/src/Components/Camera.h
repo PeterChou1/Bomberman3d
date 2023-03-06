@@ -5,6 +5,13 @@
 #include "Math/Vec3d.h"
 #include "Math/Matrix.h"
 
+enum CameraModes
+{
+	Debug,
+	Stationary,
+	ThirdPerson
+};
+
 struct Camera
 {
 	// horizontal and vertical angle of the camera
@@ -12,11 +19,13 @@ struct Camera
 	double AngleV;
 	// where the camera is pointing
 	Vec3d Target;
-
 	Vec3d Up;
 	// OpenGL perspective matrix
 	Mat4X4 Perspective;
+	CameraModes Modes;
 	EntityId CameraTarget;
+	double OffsetAngle;
+	Vec3d Offset;
 };
 
 /**
@@ -78,6 +87,10 @@ inline void SetCameraTransform(Transform& t, const Vec3d& pos, const Vec3d& top,
 	t.Local2World[1] = {right.Y, up.Y, forward.Y, pos.Y};
 	t.Local2World[2] = {right.Z, up.Z, forward.Z, pos.Z};
 	t.Local2World[3] = {0, 0, 0, 1};
+	t.Forward = forward;
+	t.Right = right;
+	t.Up = up;
+
 	Matrix2Quat(t.Local2World, t.Rotation);
 	t.World2Local = t.Local2World.Inverse();
 }
@@ -89,12 +102,47 @@ inline void InitCamera(Camera& cam, const double angleY, const double nearPlane,
 	SetFrustum(cam, nearPlane, farPlane, right, left, bottom, top);
 }
 
-inline void InitCamera(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d& up, const Vec3d& target,
-                       const double angleY, const double nearPlane, const double farPlane, const double aspectRatio)
+/**
+ * \brief Attach camera to a parent Entity with a transform
+ */
+inline void AttachCamera(Camera& cam, Transform& camT, EntityId parentId, const Vec3d& pos, const Vec3d& up, const Vec3d& target,
+                         const double angleY, const double nearPlane, const double farPlane, const double aspectRatio)
+{
+	Vec3d targetNorm = Norm(target);
+	Vec3d htarget = { targetNorm.X, 0, targetNorm.Z };
+	Normalize(htarget);
+	// Get Angle between htarget and view
+	// split into 4 quadrants
+	float angle = acos(targetNorm.X);
+	if (htarget.Z >= 0.0f)
+	{
+		cam.AngleH = htarget.X >= 0.0 ? 2 * PI - angle : PI + angle;
+	}
+	else
+	{
+		cam.AngleH = htarget.X >= 0.0 ? angle : PI - angle;
+	}
+	cam.AngleV = -asin(targetNorm.Y);
+	cam.Target = targetNorm;
+	cam.Up = up;
+	cam.CameraTarget = parentId;
+	cam.Offset = { 0, 10 , 10 };
+	cam.OffsetAngle = 0;
+	cam.Modes = ThirdPerson;
+	SetCameraTransform(camT, pos, up, target);
+	double right, left, bottom, top;
+	GetPerspective(angleY, aspectRatio, nearPlane, right, left, bottom, top);
+	SetFrustum(cam, nearPlane, farPlane, right, left, bottom, top);
+}
+
+
+
+
+inline void MakeCameraLookAt(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d& up, const Vec3d& target)
 {
 	// Find Angle of Target Vector on X, Z plane
 	Vec3d targetNorm = Norm(target);
-	Vec3d htarget = { targetNorm.X, 0, targetNorm.Z};
+	Vec3d htarget = { targetNorm.X, 0, targetNorm.Z };
 	Normalize(htarget);
 	// Get Angle between htarget and view
 	// split into 4 quadrants
@@ -111,13 +159,33 @@ inline void InitCamera(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d&
 	cam.Target = targetNorm;
 	cam.Up = up;
 	SetCameraTransform(t, pos, up, target);
+}
+
+/**
+ * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot (Used for debugging)
+ */
+inline void RotateAttachCameraTransform(Transform& camTransform, Transform& targetTransform, Camera& cam, const double rotateDelta)
+{
+
+	cam.OffsetAngle = -5 * rotateDelta;
+	cam.Offset = RotateVector(cam.Offset, cam.OffsetAngle, { 0, 1, 0 });
+	Vec3d camPos = targetTransform.Position + cam.Offset;
+	Vec3d lookAt = targetTransform.Position;
+	MakeCameraLookAt(cam, camTransform, camPos, { 0, 1, 0 }, lookAt - camPos);
+}
+
+inline void InitCamera(Camera& cam, Transform& t, const Vec3d& pos, const Vec3d& up, const Vec3d& target,
+                       const double angleY, const double nearPlane, const double farPlane, const double aspectRatio)
+{
+	// Find Angle of Target Vector on X, Z plane
+	MakeCameraLookAt(cam, t, pos, up, target);
 	double right, left, bottom, top;
 	GetPerspective(angleY, aspectRatio, nearPlane, right, left, bottom, top);
 	SetFrustum(cam, nearPlane, farPlane, right, left, bottom, top);
 }
 
 /**
- * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot
+ * \brief Move Transform t to a new position by adding Vec3d pos and Rotated by rot (Used for debugging)
  */
 inline void RotateCameraTransform(Transform& t, Camera& cam, const Vec3d& pos, const double deltaX, const double deltaY, const double deltaUp)
 {
@@ -148,5 +216,4 @@ inline void RotateCameraTransform(Transform& t, Camera& cam, const Vec3d& pos, c
 	t.Local2World = t.Local2World * moveMatrix;
 	t.World2Local = t.Local2World.Inverse();
 	t.Position = { t.Local2World[0][3], t.Local2World[1][3], t.Local2World[2][3] };
-
 }

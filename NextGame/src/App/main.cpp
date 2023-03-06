@@ -134,7 +134,6 @@ void Idle()
 	if (x > APP_VIRTUAL_WIDTH)
 	{
 		glutWarpPointer(APP_VIRTUAL_WIDTH, APP_VIRTUAL_HEIGHT - y);
-	
 	}
 	
 	if (x < 0)

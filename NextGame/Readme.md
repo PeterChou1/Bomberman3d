@@ -34,6 +34,7 @@ bool toScreenSpace(Vec3d a, Vec3d& coords, Camera scene_cam)
 // check if coordinate is in triangle via barycentric coordinates
 bool InsideTriangle(Triangle t, Vec3d p)
 {
+{
 	return false;
 }
 

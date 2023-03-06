@@ -1,9 +1,8 @@
 #pragma once
-#include <algorithm>
 
+#include <algorithm>
 #include "Mesh.h"
 #include "Transform.h"
-#include "ECS/Scene.h"
 #include "Math/Vec3d.h"
 #include <vector>
 
@@ -12,8 +11,8 @@
  */
 struct AABB
 {
-	// whether or not the Axis align bounding box is stationary and does not move
-	bool stationary = true;
+	// whether or not the Axis align bounding box is non moving objects
+	bool Stationary = true;
 	Vec3d PMax{ -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
 	Vec3d PMin{ std::numeric_limits<double>::infinity(),  std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() };
 	Vec3d PMaxT{};
@@ -41,18 +40,20 @@ inline bool Overlaps(const AABB& b1, const AABB& b2) {
  */
 inline void ComputeAABB(Mesh& mesh, AABB& aabb)
 {
-	assert(aabb.PMax.X == -std::numeric_limits<double>::infinity());
 	for(auto triangle : mesh.Triangles)
 	{
 		for (Vec3d points : triangle.P)
 		{
-			aabb.PMax.X = std::max(aabb.PMax.X, points.X);
-			aabb.PMax.Y = std::max(aabb.PMax.Y, points.Y);
-			aabb.PMax.Z = std::max(aabb.PMax.Z, points.Z);
+			using std::max;
+			using std::min;
 
-			aabb.PMin.X = std::min(aabb.PMin.X, points.X);
-			aabb.PMin.Y = std::min(aabb.PMin.Y, points.Y);
-			aabb.PMin.Z = std::min(aabb.PMin.Z, points.Z);
+			aabb.PMax.X = max(aabb.PMax.X, points.X);
+			aabb.PMax.Y = max(aabb.PMax.Y, points.Y);
+			aabb.PMax.Z = max(aabb.PMax.Z, points.Z);
+			
+			aabb.PMin.X = min(aabb.PMin.X, points.X);
+			aabb.PMin.Y = min(aabb.PMin.Y, points.Y);
+			aabb.PMin.Z = min(aabb.PMin.Z, points.Z);
 		}
 	}
 	aabb.PMaxT = aabb.PMax;

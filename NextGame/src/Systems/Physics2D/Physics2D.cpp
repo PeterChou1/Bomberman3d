@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Physics2D.h"
-#include "Components/Collider.h"
+#include "Components/AABB.h"
 #include "Components/Collider2D.h"
 #include "Components/Transform.h"
 
@@ -69,7 +69,7 @@ void Physics2D::Update(const float deltaTime)
 			if (A == B) continue;
 			const auto abox = SystemScene.Get<AABB>(A);
 			const auto bbox = SystemScene.Get<AABB>(B);
-			if (abox->stationary && bbox->stationary) continue;
+			if (abox->Stationary && bbox->Stationary) continue;
 			if (Overlaps2d(*abox, *bbox))
 			{
 				entityPair.emplace_back(A, B);
@@ -98,12 +98,12 @@ void Physics2D::Update(const float deltaTime)
 		if (calculateContact(*abox, *bbox, *transformA, *transformB, c))
 		{
 			// positional correction
-			if (!abox->stationary)
+			if (!abox->Stationary)
 			{
 			    MoveTransform(*transformA, -1 * c.penetration * c.normal);
 			}
 
-			if (!bbox->stationary)
+			if (!bbox->Stationary)
 			{
 				MoveTransform(*transformB, c.penetration * c.normal);
 			}

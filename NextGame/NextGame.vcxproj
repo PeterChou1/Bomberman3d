@@ -177,8 +177,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Components\Header.h" />
+    <ClInclude Include="src\Components\Timer.h" />
+    <ClInclude Include="src\Systems\AI\AIController.h" />
+    <ClInclude Include="src\Components\AI.h" />
+    <ClInclude Include="src\Components\Map.h" />
     <ClInclude Include="src\Systems\Physics2D\Physics2D.h" />
-    <ClInclude Include="src\Components\Collider.h" />
+    <ClInclude Include="src\Components\AABB.h" />
     <ClInclude Include="src\Components\Collider2D.h" />
     <ClInclude Include="src\Components\Mouse.h" />
     <ClInclude Include="src\Components\RigidBody.h" />
@@ -187,7 +192,7 @@
     <ClInclude Include="src\Systems\Physics3D\Physics3D.h" />
     <ClInclude Include="src\Components\Display.h" />
     <ClInclude Include="src\Components\Particle.h" />
-    <ClInclude Include="src\Systems\Camera\CameraControl.h" />
+    <ClInclude Include="src\Systems\PlayerController\PlayerController.h" />
     <ClInclude Include="src\Components\Mesh.h" />
     <ClInclude Include="src\Systems\Renderer\Renderer.h" />
     <ClInclude Include="src\App\app.h" />
@@ -207,10 +212,11 @@
     <ClInclude Include="src\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Systems\AI\AIController.cpp" />
     <ClCompile Include="src\Systems\Physics2D\Physics2D.cpp" />
     <ClCompile Include="src\Systems\Mouse\MouseSystem.cpp" />
     <ClCompile Include="src\Systems\Physics3D\Physics3D.cpp" />
-    <ClCompile Include="src\Systems\Camera\CameraControl.cpp" />
+    <ClCompile Include="src\Systems\PlayerController\PlayerController.cpp" />
     <ClCompile Include="src\Systems\Renderer\Renderer.cpp" />
     <ClCompile Include="src\App\app.cpp" />
     <ClCompile Include="src\App\main.cpp" />

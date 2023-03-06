@@ -1,8 +1,7 @@
 #pragma once
-#include <cassert>
 #include <iostream>
-
 #include "app/AppSettings.h"
+#include "ECS/Scene.h"
 #include "Math/Matrix.h"
 #include "Math/Quaternion.h"
 #include "Math/Vec3d.h"
@@ -15,6 +14,12 @@ struct Transform
 	Quat Rotation;
 	// scaling factor
 	Vec3d Scaling;
+
+	Vec3d Right;
+
+	Vec3d Forward;
+
+	Vec3d Up;
 
 	Mat4X4 Local2World;
 

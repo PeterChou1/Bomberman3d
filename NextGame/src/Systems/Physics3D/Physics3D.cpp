@@ -5,7 +5,7 @@
 #include "Components/Particle.h"
 #include "Components/RigidBody.h"
 #include "Components/Transform.h"
-#include "Components/Collider.h"
+#include "Components/AABB.h"
 
 
 void Physics3D::Update(const float deltaTime)
