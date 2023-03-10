@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include "app/AppSettings.h"
-#include "ECS/Scene.h"
 #include "Math/Matrix.h"
 #include "Math/Quaternion.h"
 #include "Math/Vec3d.h"

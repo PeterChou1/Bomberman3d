@@ -3,8 +3,9 @@
 
 struct AI
 {
-	double speed;
-	Vec3d direction;
-	int x;
-	int y;
+	// set default speed to 2 
+	double Speed = 2;
+	Vec3d Direction;
+	int X;
+	int Y;
 };

@@ -8,20 +8,13 @@
 /**
  * \brief Renderer deals with any entity with a Mesh and a Transform Attach to it
  */
-class Renderer : System
+class Renderer : public virtual System
 {
 public:
-	Renderer(Scene& scene) : System(scene) {}
-
-	void Init(Display* d, Camera* c, Transform* t)
-	{
-		Display = d;
-		Cam = c;
-		CamTransform = t;
-	}
-
+	Renderer(Scene& scene, Display* display, Camera* camera, Transform* camTransform) : 
+		System(scene), Display(display), Cam(camera), CamTransform(camTransform) {}
+	void Update(float deltaTime) override {}
 	void Render() override;
-
 	~Renderer() override
 	{
 		delete[] Display->Zbuffer;

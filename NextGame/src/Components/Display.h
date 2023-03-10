@@ -1,5 +1,6 @@
 #pragma once
 
+
 /**
  * \brief Component containing all things related to display output
  */

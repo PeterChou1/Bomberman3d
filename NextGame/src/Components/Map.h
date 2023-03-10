@@ -1,10 +1,14 @@
 #pragma once
+#include <random>
+#include "AABB.h"
+#include "AI.h"
+#include "Mesh.h"
 #include "Math/Vec3d.h"
 
 constexpr int MAP_WIDTH = 30;
 constexpr int MAP_HEIGHT = 30;
 
-constexpr int LEVEL_1[MAP_HEIGHT][MAP_WIDTH]= {
+constexpr int LEVEL_1[MAP_HEIGHT][MAP_WIDTH] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -38,16 +42,23 @@ constexpr int LEVEL_1[MAP_HEIGHT][MAP_WIDTH]= {
 };
 
 
-inline int Vec3toBlockMap(int blockMap[MAP_HEIGHT][MAP_WIDTH], const Vec3d input)
+struct Direction
 {
-	const int x = static_cast<int>(input.X + (MAP_HEIGHT / 2));
-	const int y = static_cast<int>(input.Z + (MAP_WIDTH / 2));
-	return blockMap[x][y];
-}
-
-
+	int X;
+	int Y;
+};
 
 struct Map
 {
 	int BlockMap[MAP_HEIGHT][MAP_WIDTH];
+	Direction VectorField[MAP_HEIGHT][MAP_WIDTH];
 };
+
+
+inline int Vec3toBlockMap(int blockMap[MAP_HEIGHT][MAP_WIDTH], const Vec3d input)
+{
+	int y = static_cast<int>(std::round(input.X + (MAP_HEIGHT / 2)));
+	int x = static_cast<int>(std::round(input.Z + (MAP_WIDTH / 2)));
+	return blockMap[y][x];
+}
+

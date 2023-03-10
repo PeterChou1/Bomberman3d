@@ -42,13 +42,13 @@ inline void SetInertialTensorBody(RigidBody& rb, const Vec3d scale)
 /**
  * \brief Setup an Test RigidBody (cube)
  */
-inline void SetUpRigidBody(RigidBody& rb, const Transform& t)
+inline void SetUpRigidBody(RigidBody& rb, const Transform& t, Vec3d Force, Vec3d Torque)
 {
 	rb.Mass = 5;
 	rb.LinearMomentum = {};
 	rb.AngularMomentum = {};
-	rb.Force = {0, 0, 0};
-	rb.Torque = {50, 25, 10};
+	rb.Force = Force;// {0, 0, 0};
+	rb.Torque = Torque;// {50, 25, 10};
 	rb.Velocity = rb.LinearMomentum / rb.Mass;
 	SetInertialTensorBody(rb, t.Scaling);
 	const Mat3X3 rotation = GetRotationMatrix(t);

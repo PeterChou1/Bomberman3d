@@ -13,12 +13,16 @@ struct AABB
 {
 	// whether or not the Axis align bounding box is non moving objects
 	bool Stationary = true;
+	// used for detecting if bounding box is a grenade
+	bool IsGrenade = false;
 	// trigger is for AABB used for bomb trigger detection
-	bool isBombTrigger = false;
-	// how long the bomb w
-	double bombTime = 5;
+	bool IsBombTrigger = false;
+	// whether or not to handle 2D or 3D
+	bool Is3D = false;
+	// how long the bomb 
+	double BombTime = 5;
 	// indicate the Axis Align Box belongs to a player
-	bool isPlayer = false;
+	bool IsPlayer = false;
 
 	Vec3d PMax{ -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
 	Vec3d PMin{ std::numeric_limits<double>::infinity(),  std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() };
@@ -45,11 +49,11 @@ inline bool Overlaps(const AABB& b1, const AABB& b2) {
 /**
  * \brief Computes AABB for a mesh
  */
-inline void ComputeAABB(Mesh& mesh, AABB& aabb)
+inline void ComputeAABB(const Mesh& mesh, AABB& aabb)
 {
 	for(auto triangle : mesh.Triangles)
 	{
-		for (Vec3d points : triangle.P)
+		for (const Vec3d points : triangle.P)
 		{
 			using std::max;
 			using std::min;

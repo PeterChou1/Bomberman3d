@@ -2,20 +2,17 @@
 #include "Components/Mouse.h"
 #include "Systems/System.h"
 
-class MouseSystem : System
+/**
+ * \brief Handles Tracking of Mouse and Mouse Delta
+ */
+class MouseSystem : public virtual System
 {
 public:
-	MouseSystem(Scene& scene) : System(scene) {}
-
-	void Init(Mouse* m)
-	{
-		_Mouse = m;
-	}
-
+	MouseSystem(Scene& scene, Mouse* mouse) : System(scene), Mouse(mouse) {}
 	void Update(float deltaTime) override;
-
+	void Render() override {}
 	~MouseSystem() override = default;
 
 private:
-	Mouse* _Mouse{ nullptr };
+	Mouse* Mouse{ nullptr };
 };

@@ -5,8 +5,8 @@
 
 
 bool DirectionBlocking(const Map& map, const std::vector<std::pair<int, int>>& otherEntities,
-                       const int excludeIndex, const int agentX, const int agentY, const Vec3d direction,
-                       const int probeDirection = 1)
+	const int excludeIndex, const int agentX, const int agentY, const Vec3d direction,
+	const int probeDirection = 1)
 {
 	const int checkX = agentX + probeDirection * static_cast<int>(direction.X);
 	const int checkY = agentY + probeDirection * static_cast<int>(direction.Z);
@@ -69,8 +69,8 @@ void AIController::Update(float deltaTime)
 		// Get map position of the AI
 		int x = static_cast<int>(aiTransform->Position.X + (MAP_HEIGHT / 2));
 		int y = static_cast<int>(aiTransform->Position.Z + (MAP_WIDTH / 2));
-		ai->x = x;
-		ai->y = y;
+		ai->X = x;
+		ai->Y = y;
 		aiTransforms.push_back(aiTransform);
 		ai2dPositions.emplace_back(x, y);
 		agents.push_back(ai);
@@ -83,16 +83,16 @@ void AIController::Update(float deltaTime)
 
 		const std::pair<int, int> position = ai2dPositions[i];
 		std::vector<Vec3d> possibleDirection = PossibleDirection(*SceneMap, position.first, position.second, ai2dPositions, i);
-		bool blocking = DirectionBlocking(*SceneMap, ai2dPositions, i, position.first, position.second, agent->direction);
-		if ((agent->direction.X == 0 && agent->direction.Z == 0) || (blocking && possibleDirection.size() >= 1))
+		bool blocking = DirectionBlocking(*SceneMap, ai2dPositions, i, position.first, position.second, agent->Direction);
+		if ((agent->Direction.X == 0 && agent->Direction.Z == 0) || (blocking && possibleDirection.size() >= 1))
 		{
 			// pick a random non blocking new direction
 			int randNum = rand() % possibleDirection.size();
-			agent->direction = possibleDirection[randNum];
+			agent->Direction = possibleDirection[randNum];
 		}
-		if (agent->direction.X != 0 || agent->direction.Z != 0)
+		if (agent->Direction.X != 0 || agent->Direction.Z != 0)
 		{
-			MoveTransform(*agentTransform, agent->direction * agent->speed * deltaTime);
+			MoveTransform(*agentTransform, agent->Direction * agent->Speed * deltaTime);
 		}
 
 	}

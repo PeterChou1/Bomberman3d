@@ -177,12 +177,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Components\GernadeTrajectory.h" />
+    <ClInclude Include="src\Components\Sound.h" />
     <ClInclude Include="src\Systems\Bomb\BombManager.h" />
     <ClInclude Include="src\Components\PlayerInfoObj.h" />
     <ClInclude Include="src\Components\Bomb.h" />
     <ClInclude Include="src\Systems\AI\AIController.h" />
     <ClInclude Include="src\Components\AI.h" />
     <ClInclude Include="src\Components\Map.h" />
+    <ClInclude Include="src\Systems\CameraController\CameraController.h" />
+    <ClInclude Include="src\Systems\GernadeHandler\GrenadeHandler.h" />
     <ClInclude Include="src\Systems\Physics2D\Physics2D.h" />
     <ClInclude Include="src\Components\AABB.h" />
     <ClInclude Include="src\Components\Mouse.h" />
@@ -207,13 +211,17 @@
     <ClInclude Include="src\ECS\Scene.h" />
     <ClInclude Include="src\Math\Matrix.h" />
     <ClInclude Include="src\Math\Vec3d.h" />
+    <ClInclude Include="src\Systems\SoundSystem\SoundSystem.h" />
     <ClInclude Include="src\Systems\System.h" />
     <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Systems\UI\UI.h" />
     <ClInclude Include="src\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Systems\Bomb\BombManager.cpp" />
     <ClCompile Include="src\Systems\AI\AIController.cpp" />
+    <ClCompile Include="src\Systems\CameraController\CameraController.cpp" />
+    <ClCompile Include="src\Systems\GernadeHandler\GrenadeHandler.cpp" />
     <ClCompile Include="src\Systems\Physics2D\Physics2D.cpp" />
     <ClCompile Include="src\Systems\Mouse\MouseSystem.cpp" />
     <ClCompile Include="src\Systems\Physics3D\Physics3D.cpp" />
@@ -233,6 +241,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Math\Matrix.cpp" />
+    <ClCompile Include="src\Systems\SoundSystem\SoundSystem.cpp" />
+    <ClCompile Include="src\Systems\UI\UI.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

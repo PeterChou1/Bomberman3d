@@ -5,23 +5,33 @@
 #include "Math/Vec3d.h"
 #include "Math/Matrix.h"
 
-enum CameraModes
-{
-	Debug,
-	Stationary,
-	ThirdPerson
-};
+// -- default camera 
+constexpr double FOV_ANGLE = 90;
+constexpr double NEAR_PLANE = 0.1;
+constexpr double FAR_PLANE = 100;
+constexpr double ASPECT_RATIO = APP_VIRTUAL_WIDTH / APP_VIRTUAL_HEIGHT;
+constexpr int RESOLUTION = APP_VIRTUAL_HEIGHT * APP_VIRTUAL_WIDTH;
 
 struct Camera
 {
+	enum CameraModes
+	{
+		Debug,
+		Stationary,
+		ThirdPerson
+	};
 	// horizontal and vertical angle of the camera
 	double AngleH;
 	double AngleV;
+	double NearPlane;
+	double FarPlane;
 	// where the camera is pointing
 	Vec3d Target;
 	Vec3d Up;
 	// OpenGL perspective matrix
 	Mat4X4 Perspective;
+	// Inverse perspective matrix used to map screen to world coordinates
+	Mat4X4 InversePerspective;
 	CameraModes Modes;
 	EntityId CameraTarget;
 	double OffsetAngle;
@@ -47,6 +57,9 @@ inline void GetPerspective(const double fovY, const double aspectRatio, const do
 inline void SetFrustum(Camera& cam, const double nearPlane, const double& farPlane,
                        const double right, const double left, const double bottom, const double top)
 {
+	cam.NearPlane = nearPlane;
+	cam.FarPlane = farPlane;
+
 	cam.Perspective[0][0] = 2 * nearPlane / (right - left);
 	cam.Perspective[0][1] = 0;
 	cam.Perspective[0][2] = (right + left) / (right - left);
@@ -66,6 +79,8 @@ inline void SetFrustum(Camera& cam, const double nearPlane, const double& farPla
 	cam.Perspective[3][1] = 0;
 	cam.Perspective[3][2] = -1;
 	cam.Perspective[3][3] = 0;
+
+	cam.InversePerspective = cam.Perspective.Inverse();
 }
 
 /**
@@ -95,13 +110,6 @@ inline void SetCameraTransform(Transform& t, const Vec3d& pos, const Vec3d& top,
 	t.World2Local = t.Local2World.Inverse();
 }
 
-inline void InitCamera(Camera& cam, const double angleY, const double nearPlane, const double farPlane, const double aspectRatio)
-{
-	double right, left, bottom, top;
-	GetPerspective(angleY, aspectRatio, nearPlane, right, left, bottom, top);
-	SetFrustum(cam, nearPlane, farPlane, right, left, bottom, top);
-}
-
 /**
  * \brief Attach camera to a parent Entity with a transform
  */
@@ -128,7 +136,7 @@ inline void AttachCamera(Camera& cam, Transform& camT, EntityId parentId, const 
 	cam.CameraTarget = parentId;
 	cam.Offset = { 0, 10 , 10 };
 	cam.OffsetAngle = 0;
-	cam.Modes = ThirdPerson;
+	cam.Modes = Camera::ThirdPerson;
 	SetCameraTransform(camT, pos, up, target);
 	double right, left, bottom, top;
 	GetPerspective(angleY, aspectRatio, nearPlane, right, left, bottom, top);

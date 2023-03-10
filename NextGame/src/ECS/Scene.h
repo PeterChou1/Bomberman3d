@@ -6,6 +6,7 @@
 
 constexpr int MAX_COMPONENTS = 32;
 constexpr int MAX_ENTITIES = 1000;
+
 using EntityId = unsigned long long;
 using EntityIndex = unsigned int;
 using EntityVersion = unsigned int;
@@ -125,6 +126,29 @@ struct Scene
 
 
 	/**
+	 * Get first entity with the component
+	 */
+	template <typename T>
+	EntityId GetEntityWithComponent()
+	{
+		int componentId = GetId<T>();
+		ComponentMask Mask;
+		Mask.set(componentId);
+		EntityIndex Index = 0;
+		do
+		{
+			Index++;
+		} while (Index < Entities.size() && !(Mask == (Mask & Entities[Index].Mask)));
+
+		if (Index == Entities.size())
+		{
+			return CreateEntityId(-1, 0);
+		}
+
+		return Entities[Index].Id;
+	}
+
+	/**
 	 * RemoveEntity an entity from the entity list
 	 */
 	template <typename T>
@@ -164,7 +188,7 @@ struct Scene
 
 struct SceneIterator
 {
-	SceneIterator(Scene& scene, int componentIds[], const int size) : PScene(&scene)
+	SceneIterator(Scene& scene, int componentIds[], int size) : PScene(&scene)
 	{
 		if (size == 0)
 		{

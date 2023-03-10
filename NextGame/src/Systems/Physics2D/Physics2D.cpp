@@ -50,7 +50,7 @@ void Physics2D::Update(const float deltaTime)
 {
 	using collisionPair = std::pair<EntityId, EntityId>;
 
-	// STEP 1: transform aabb
+	//transform aabb
 	int collisonTransform[] = {GetId<AABB>(), GetId<Transform>()};
 	const auto collisionObj = SceneIterator(SystemScene, collisonTransform, 2);
 	for (const EntityId cObj : collisionObj)
@@ -61,8 +61,8 @@ void Physics2D::Update(const float deltaTime)
 	}
 
 
-	int rigidbody[] = {GetId<Transform>(), GetId<AABB>()};
-	const auto aabbIterator = SceneIterator(SystemScene, rigidbody, 2);
+	int physics2dObj[] = {GetId<Transform>(), GetId<AABB>()};
+	const auto aabbIterator = SceneIterator(SystemScene, physics2dObj, 2);
 	std::vector<collisionPair> collisionEntityPair;
 	std::vector<collisionPair> collisionTriggersPair;
 
@@ -73,7 +73,8 @@ void Physics2D::Update(const float deltaTime)
 			if (A == B) continue;
 			const auto abox = SystemScene.Get<AABB>(A);
 			const auto bbox = SystemScene.Get<AABB>(B);
-			if (abox->Stationary && bbox->Stationary) continue;
+			if ((abox->Stationary && bbox->Stationary) || 
+				(abox->Is3D || bbox->Is3D)) continue;
 
 			if (Overlaps2d(*abox, *bbox))
 			{
@@ -92,9 +93,14 @@ void Physics2D::Update(const float deltaTime)
 	auto last = std::unique(collisionEntityPair.begin(), collisionEntityPair.end());
 	collisionEntityPair.erase(last, collisionEntityPair.end());
 
+	std::vector<EntityId> exclude;
+
 	// calculate the penetration depth + 
 	for (auto pair : collisionEntityPair)
 	{
+		if (std::count(exclude.begin(), exclude.end(), pair.first) ||
+			std::count(exclude.begin(), exclude.end(), pair.second)) continue;
+
 		ContactResponse c{};
 		const auto abox = SystemScene.Get<AABB>(pair.first);
 		const auto bbox = SystemScene.Get<AABB>(pair.second);
@@ -102,45 +108,62 @@ void Physics2D::Update(const float deltaTime)
 		const auto transformB = SystemScene.Get<Transform>(pair.second);
 		if (calculateContact(*abox, *bbox, *transformA, *transformB, c))
 		{
-			// positional correction
-			if (!abox->Stationary && !bbox->isBombTrigger)
+			// Positional correction
+			if (!abox->Stationary && !bbox->IsBombTrigger)
 			{
 				MoveTransform(*transformA, -1 * c.penetration * c.normal);
 			}
-			else if (!bbox->Stationary && !abox->isBombTrigger)
+			else if (!bbox->Stationary && !abox->IsBombTrigger)
 			{
 				MoveTransform(*transformB, c.penetration * c.normal);
 			}
-			// enemy collison with player
-			if (!abox->Stationary && bbox->isPlayer)
+			// Enemy collison with player
+			if (!abox->Stationary && bbox->IsPlayer)
 			{
 				SystemScene.Get<PlayerInfoObj>(pair.second)->GameOver = true;
-				SystemScene.RemoveComponent<Mesh>(pair.first);
+				SystemScene.RemoveComponent<Mesh>(pair.second);
+				SystemScene.RemoveComponent<AABB>(pair.second);
+				exclude.push_back(pair.second);
 			}
-			else if (!bbox->Stationary && abox->isPlayer)
+			else if (!bbox->Stationary && abox->IsPlayer)
 			{
 				SystemScene.Get<PlayerInfoObj>(pair.first)->GameOver = true;
 				SystemScene.RemoveComponent<Mesh>(pair.first);
+				SystemScene.RemoveComponent<AABB>(pair.first);
+				exclude.push_back(pair.first);
 			}
 
-			// trigger calculation
-			if (!abox->Stationary && bbox->isBombTrigger)
+			// Trigger calculation
+			if (!abox->Stationary && bbox->IsBombTrigger)
 			{
-				if (abox->isPlayer)
+				SystemScene.RemoveComponent<Mesh>(pair.first);
+				SystemScene.RemoveComponent<AABB>(pair.first);
+				if (abox->IsPlayer)
 				{
 					// trigger game over
 					SystemScene.Get<PlayerInfoObj>(pair.first)->GameOver = true;
 				}
-				SystemScene.RemoveComponent<Mesh>(pair.first);
+				else
+				{
+					SystemScene.DestroyEntity(pair.first);
+				}
+				exclude.push_back(pair.first);
 			}
-			else if (!bbox->Stationary && abox->isBombTrigger)
+			else if (!bbox->Stationary && abox->IsBombTrigger)
 			{
-				if (bbox->isPlayer)
+
+				SystemScene.RemoveComponent<Mesh>(pair.second);
+				SystemScene.RemoveComponent<AABB>(pair.second);
+				if (bbox->IsPlayer)
 				{
 					// trigger game over
 					SystemScene.Get<PlayerInfoObj>(pair.second)->GameOver = true;
 				}
-				SystemScene.RemoveComponent<Mesh>(pair.second);
+				else
+				{
+					SystemScene.DestroyEntity(pair.second);
+				}
+				exclude.push_back(pair.second);
 			}
 		}
 	}

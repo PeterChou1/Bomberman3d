@@ -225,8 +225,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	glutDisplayFunc(Display); // Register callback handler for window re-paint event	
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
-	// Hide Cursor
-	glutSetCursor(GLUT_CURSOR_NONE);
 	InitGL(); // Our own OpenGL initialization
 
 
