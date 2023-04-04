@@ -92,7 +92,7 @@ call their Render and Update function respectively. The order matters if you
 have a System which depended on another Systems calculation you must regis-
 ter the dependent system after.
 
-#Physics
+# Physics
 
 2d and 3d physics are handle by the Physics2D and Physics3D system respectively.
 I had originally intended to implement a full 3d rigid body simulation. However
