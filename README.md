@@ -25,11 +25,8 @@ friendly access. The scene object will serve as a database of components and hel
 Example of a component (can be any simple data struct):
 ```c++
 struct Bomb {
-
 double BombCrossSize = 5;
-
-double Time = 2 . 5 ;
-
+double Time = 2.5 ;
 };
 ```
 
@@ -38,7 +35,7 @@ Example of adding component to a entity:
 ```c++
 Scene scene ;
 EntityID triangle = scene.NewEntity () ;
-Transform∗ pTransform = scene . Assign<Transform >( triangle ) ;
+Transform∗ pTransform = scene.Assign<Transform>( triangle ) ;
 ```
 
 
@@ -59,10 +56,10 @@ class MouseSystem : public virtual System
 {
 public:
   MouseSystem( Scene& scene , Mouse∗ mouse ) :
-  System( s c ene ) , Mouse (mouse ) {}
-  void Update ( f loat deltaTime ) o v e r r i d e ;
-  void Render ( ) o v e r r i d e {}
-  ˜MouseSystem( ) o v e r r i d e = default ;
+  System( scene ) , Mouse (mouse ) {}
+  void Update ( float deltaTime ) override ;
+  void Render ( ) override {}
+  ˜MouseSystem( ) override = default ;
 private:
   Mouse∗ Mouse{ n u l l p t r } ;
 };
@@ -74,14 +71,13 @@ Example of Iterating over components
 ```c++
 void SoundSystem::Update ( float deltaTime ) {
 
-  int collisonTransform [ ] = { GetId<SoundEffect >() };
+  int collisonTransform [ ] = { GetId<SoundEffect>() };
   const auto soundIterator = SceneIterator( SystemScene , collisonTransform , 1 ) ;
   for ( const EntityId soundID : soundIterator )
   {
-    auto soundEf f e c t =
-    SystemScene . Get<SoundEf fect >(soundID ) ;
-    App : : PlaySound ( soundEf f e c t−>Soundf i l e ) ;
-    SystemScene . De s t royEnt i ty ( soundID ) ;
+    auto soundEffect = SystemScene.Get<SoundEffect>(soundID) ;
+    App::PlaySound ( soundEffect−>Soundfile) ;
+    SystemScene.DestroyEntity ( soundID ) ;
   }
 }
 ```
