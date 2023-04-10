@@ -11,7 +11,7 @@ Tested on Visual Studio 2019
 - Third person camera
 - 2d Physics
 - Basic 3d Physics
-
+- Math Library (Matrix/Vectors/Quaternions)
 # Overview
 
 The controls of the game is WASD to move. Space to place bomb. E to throw grenade. The player wins the game by killing every enemy.
